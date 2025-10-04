@@ -22,9 +22,6 @@ Auditoría habilitable vía `Auditing:Enabled` captura operaciones CREATE / UPDA
 Campos registrados: Usuario (placeholder), Entidad, Acción, Valores Anteriores, Valores Nuevos, Campos Cambiados, Fecha UTC, TraceId.
 Formato y limitaciones detallados en `AUDIT_LOGS.md`.
 
-## 🗑️ Soft Delete
-Aplicado a `FrecuentQuestions` mediante propiedad `IsDeleted` + filtro global en `DbContext`.
-`DeleteAsync` del repositorio genérico detecta la propiedad y marca `IsDeleted = true` (no elimina físicamente).
 
 ## ❤️ Health Checks
 Endpoints expuestos:
@@ -125,22 +122,3 @@ dotnet ef migrations add <Nombre> -p .\CC.Infrastructure\CC.Infrastructure.cspro
 # Aplicar migraciones
 dotnet ef database update -p .\CC.Infrastructure\CC.Infrastructure.csproj -s .\Api-Portar-Paciente\Api-Portar-Paciente.csproj
 ```
-
-## 🔮 Backlog (Extracto Próximo)
-1. FluentValidation para DTOs
-2. Integrar UserId real (Claims) en auditoría
-3. Versionado de API
-4. Rate limiting
-5. Cache + Polly (resiliencia HTTP / DB intermitente)
-6. Observabilidad avanzada (OpenTelemetry métricas + tracing distribuido)
-7. CI/CD + análisis estático (Sonar / SAST)
-8. Seed inicial (roles, usuario admin, FAQs demo)
-
-## 🛡️ Notas de Seguridad Futuras
-- Centralizar configuración sensible en Azure Key Vault
-- Revisar headers de seguridad (CSP, HSTS, X-Content-Type-Options)
-- Implementar bloqueo de cuenta por intentos fallidos
-- Sanitizar payloads en logs (evitar PII)
-
----
-Fin.
