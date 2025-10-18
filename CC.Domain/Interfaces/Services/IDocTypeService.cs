@@ -3,7 +3,7 @@ using CC.Domain.Entities;
 
 namespace CC.Domain.Interfaces.Services
 {
-    public interface IFrecuentQuestionsService : IServiceBase<FrecuentQuestions, FrecuentQuestionsDto>
+    public interface IDocTypeService : IServiceBase<DocType, DocTypeDto>
     {
     }
 }

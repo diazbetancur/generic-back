@@ -2,65 +2,114 @@
 using CC.Domain.Interfaces.Repositories;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Security;
 
 namespace CC.Infrastructure.Configurations
 {
+    /// <summary>
+    /// Contexto de base de datos principal de la aplicación
+    /// </summary>
     public class DBContext : IdentityDbContext<User, Role, Guid>, IQueryableUnitOfWork
     {
-        public DBContext(DbContextOptions<DBContext> options)
-: base(options)
+        public DBContext(DbContextOptions<DBContext> options) : base(options)
         {
         }
 
         /// <summary>
-        /// FrecuentQuestions
+        /// Preguntas frecuentes (FAQs)
         /// </summary>
-        public DbSet<FrecuentQuestions> FrecuentQuestions { get; set; }
+        public DbSet<FrequentQuestions> FrequentQuestions { get; set; }
 
         /// <summary>
-        /// CardioTV
+        /// Contenido CardioTV
         /// </summary>
         public DbSet<CardioTV> CardioTVs { get; set; }
 
-
         /// <summary>
-        /// AuditLog
+        /// Logs de auditoría
         /// </summary>
         public DbSet<AuditLog> AuditLogs { get; set; }
 
         /// <summary>
-        /// Question
+        /// Preguntas de encuestas
         /// </summary>
         public DbSet<Question> Questions { get; set; }
 
         /// <summary>
-        /// ResponseQuestion
+        /// Respuestas a preguntas de encuestas
         /// </summary>
         public DbSet<ResponseQuestion> ResponseQuestions { get; set; }
+
+        /// <summary>
+        /// Tipos de documento
+        /// </summary>
+        public DbSet<DocType> DocTypes { get; set; }
+
+        /// <summary>
+        /// Desafíos OTP (One-Time Password)
+        /// </summary>
+        public DbSet<OtpChallenge> OtpChallenges { get; set; }
+
+        /// <summary>
+        /// Sesiones activas de usuarios
+        /// </summary>
+        public DbSet<Sessions> Sessions { get; set; }
+
+        /// <summary>
+        /// Configuraciones generales de la aplicación
+        /// </summary>
+        public DbSet<GeneralSettings> GeneralSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.Entity<FrecuentQuestions>().HasKey(c => c.Id);
-            builder.Entity<FrecuentQuestions>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
-            builder.Entity<FrecuentQuestions>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
 
+            // FrequentQuestions Configuration
+            builder.Entity<FrequentQuestions>().HasKey(c => c.Id);
+            builder.Entity<FrequentQuestions>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<FrequentQuestions>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+
+            // CardioTV Configuration
             builder.Entity<CardioTV>().HasKey(c => c.Id);
             builder.Entity<CardioTV>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<CardioTV>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
 
+            // AuditLog Configuration
             builder.Entity<AuditLog>().HasKey(c => c.Id);
             builder.Entity<AuditLog>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<AuditLog>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
 
+            // Question Configuration
             builder.Entity<Question>().HasKey(c => c.Id);
             builder.Entity<Question>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<Question>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
 
+            // ResponseQuestion Configuration
             builder.Entity<ResponseQuestion>().HasKey(c => c.Id);
             builder.Entity<ResponseQuestion>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<ResponseQuestion>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+
+            // DocType Configuration
+            builder.Entity<DocType>().HasKey(c => c.Id);
+            builder.Entity<DocType>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<DocType>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<DocType>().HasIndex(d => d.Code).IsUnique();
+
+            // OtpChallenge Configuration
+            builder.Entity<OtpChallenge>().HasKey(c => c.Id);
+            builder.Entity<OtpChallenge>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<OtpChallenge>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<OtpChallenge>().HasIndex(o => new { o.UserId, o.ExpiresAt });
+
+            // Sessions Configuration
+            builder.Entity<Sessions>().HasKey(c => c.Id);
+            builder.Entity<Sessions>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<Sessions>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<Sessions>().HasIndex(s => s.Jti).IsUnique();
+
+            builder.Entity<GeneralSettings>().HasKey(c => c.Id);
+            builder.Entity<GeneralSettings>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<GeneralSettings>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<GeneralSettings>().HasIndex(g => g.Key).IsUnique();
 
             DisableCascadingDelete(builder);
         }

@@ -2,7 +2,7 @@
 
 namespace CC.Domain.Interfaces.Repositories
 {
-    public interface IFrecuentQuestionsRepository : IERepositoryBase<FrecuentQuestions>
+    public interface IFrequentQuestionsRepository : IERepositoryBase<FrequentQuestions>
     {
     }
 }

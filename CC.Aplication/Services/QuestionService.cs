@@ -4,13 +4,20 @@ using CC.Domain.Entities;
 using CC.Domain.Interfaces.Repositories;
 using CC.Domain.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CC.Aplication.Services
 {
+    /// <summary>
+    /// Servicio para gestión de preguntas y encuestas
+    /// </summary>
     public class QuestionService : ServiceBase<Question, QuestionDto>, IQuestionService
     {
-
-        public QuestionService(IQuestionRepository repository, IMapper mapper) : base(repository, mapper)
+        public QuestionService(
+            IQuestionRepository repository, 
+            IMapper mapper,
+            ILogger<QuestionService> logger) 
+            : base(repository, mapper, logger)
         {
         }
     }

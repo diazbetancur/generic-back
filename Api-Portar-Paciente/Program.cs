@@ -1,88 +1,261 @@
 using Api_Portar_Paciente.HealthChecks;
+using Api_Portar_Paciente.Services;
+using AspNetCoreRateLimit;
 using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Serilog;
+using System.Reflection;
+using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
+// ===== CONFIGURAR SERILOG ANTES DE CONSTRUIR EL HOST =====
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+        .Build())
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithEnvironmentName()
+    .Enrich.WithProperty("Application", "PortalPacientesAPI")
+    .CreateLogger();
 
-// Configurar el entorno y las configuraciones específicas
-var environment = builder.Environment.EnvironmentName;
-Console.WriteLine($"Ejecutándose en ambiente: {environment}");
-
-// Cargar configuraciones específicas del ambiente
-builder.Configuration
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables();
-
-// Add services to the container.
-builder.Services.AddControllers();
-
-// Custom DI registrations (DbContext, Repositories, Services, Logging, Auditing)
-Api_Portar_Paciente.Handlers.DependencyInyectionHandler.DepencyInyectionConfig(
-    builder.Services,
-    builder.Configuration,
-    environment);
-
-// Configurar Swagger basado en el ambiente
-var enableSwagger = builder.Configuration.GetValue<bool>("Features:EnableSwagger");
-if (enableSwagger)
+try
 {
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
-}
+    Log.Information("Iniciando aplicación Portal Pacientes API");
 
-// Configurar logging basado en el ambiente
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+    var builder = WebApplication.CreateBuilder(args);
 
-if (builder.Configuration.GetValue<bool>("Features:EnableDetailedLogging"))
-{
-    builder.Logging.AddDebug();
-}
+    // ===== USAR SERILOG COMO LOGGER =====
+    builder.Host.UseSerilog();
 
-// Configurar Health Checks basado en el ambiente
-ConfigureHealthChecks(builder.Services, builder.Configuration);
+    // Configurar el entorno y las configuraciones específicas
+    var environment = builder.Environment.EnvironmentName;
+    Log.Information("Ejecutándose en ambiente: {Environment}", environment);
 
-var app = builder.Build();
+    // Cargar configuraciones específicas del ambiente
+    builder.Configuration
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
+        .AddEnvironmentVariables();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment() || enableSwagger)
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
+    // Add services to the container.
+    builder.Services.AddControllers();
+
+    // ===== LOG CLEANUP SERVICE =====
+    builder.Services.AddHostedService<LogCleanupService>();
+    Log.Information("LogCleanupService registrado como Hosted Service");
+
+    // ===== RATE LIMITING CONFIGURATION =====
+    builder.Services.AddMemoryCache();
+    builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+    builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+    builder.Services.AddInMemoryRateLimiting();
+    builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
+    // JWT Authentication
+    var jwtSecret = builder.Configuration["Authentication:JwtSecret"];
+    if (!string.IsNullOrWhiteSpace(jwtSecret))
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", $"Portal Pacientes API - {environment}");
-        c.DocumentTitle = $"Portal Pacientes API - {environment}";
+        if (jwtSecret.Length < 32)
+        {
+            Log.Warning("JWT Secret es demasiado corto. Se recomienda mínimo 32 caracteres.");
+        }
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = key,
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration["Authentication:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["Authentication:Audience"],
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+        });
+
+        Log.Information("Autenticación JWT configurada correctamente");
+    }
+    else
+    {
+        Log.Warning("JWT Secret no configurado. La autenticación JWT no estará disponible.");
+    }
+
+    // Custom DI registrations (DbContext, Repositories, Services, Logging, Auditing)
+    Api_Portar_Paciente.Handlers.DependencyInyectionHandler.DepencyInyectionConfig(
+        builder.Services,
+        builder.Configuration,
+        environment);
+
+    // ===== CONFIGURAR SWAGGER CON DOCUMENTACIÓN XML =====
+    var enableSwagger = builder.Configuration.GetValue<bool>("Features:EnableSwagger");
+    if (enableSwagger)
+    {
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Portal Pacientes API - Cardioinfantil",
+                Version = "v1.0",
+                Description = "API REST para el Portal de Pacientes de la Fundación Cardioinfantil. " +
+                             "Proporciona endpoints para autenticación, gestión de contenido y servicios al paciente.",
+                Contact = new OpenApiContact
+                {
+                    Name = "Equipo de Desarrollo Cardioinfantil",
+                    Email = "desarrollo@cardioinfantil.org"
+                }
+            });
+
+            // Incluir comentarios XML de todos los proyectos
+            var xmlFiles = new[]
+            {
+                $"{Assembly.GetExecutingAssembly().GetName().Name}.xml",
+                "CC.Domain.xml",
+                "CC.Aplication.xml"
+            };
+
+            foreach (var xmlFile in xmlFiles)
+            {
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    c.IncludeXmlComments(xmlPath);
+                    Log.Information("Documentación XML cargada: {XmlFile}", xmlFile);
+                }
+                else
+                {
+                    Log.Warning("Archivo XML no encontrado: {XmlFile}", xmlFile);
+                }
+            }
+
+            // Configurar autenticación JWT en Swagger
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header usando el esquema Bearer. \r\n\r\n" +
+                             "Ingresa 'Bearer' [espacio] y luego tu token en el campo de texto.\r\n\r\n" +
+                             "Ejemplo: 'Bearer 12345abcdef'",
+                Name = "Authorization",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.ApiKey,
+                Scheme = "Bearer"
+            });
+
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        },
+                        Scheme = "oauth2",
+                        Name = "Bearer",
+                        In = ParameterLocation.Header
+                    },
+                    new List<string>()
+                }
+            });
+        });
+
+        Log.Information("Swagger configurado y habilitado");
+    }
+
+    // Configurar Health Checks basado en el ambiente
+    ConfigureHealthChecks(builder.Services, builder.Configuration);
+
+    var app = builder.Build();
+
+    // ===== USAR SERILOG PARA REQUESTS HTTP =====
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+        {
+            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+            diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+            diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
+            diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
+        };
     });
-}
 
-// Middleware de manejo de errores basado en el ambiente
-if (app.Environment.IsDevelopment())
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment() || enableSwagger)
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", $"Portal Pacientes API - {environment} v1.0");
+            c.DocumentTitle = $"Portal Pacientes API - {environment}";
+            c.RoutePrefix = "swagger";
+            c.DisplayRequestDuration();
+            c.EnableDeepLinking();
+            c.EnableFilter();
+            c.EnableTryItOutByDefault();
+        });
+
+        Log.Information("Swagger UI disponible en /swagger");
+    }
+
+    // Middleware de manejo de errores basado en el ambiente
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    else
+    {
+        app.UseExceptionHandler("/Error");
+        app.UseHsts();
+    }
+
+    app.UseHttpsRedirection();
+
+    // ===== RATE LIMITING MIDDLEWARE (ANTES DE AUTHENTICATION) =====
+    app.UseIpRateLimiting();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    // Configurar endpoints de Health Checks
+    ConfigureHealthCheckEndpoints(app);
+
+    // Mostrar información del ambiente al iniciar
+    Log.Information("✅ Aplicación iniciada en ambiente: {Environment}", environment);
+    Log.Information("📚 Swagger habilitado: {SwaggerEnabled}", enableSwagger);
+    Log.Information("🚦 Rate Limiting habilitado: {RateLimitingEnabled}", true);
+    Log.Information("🧹 Log Cleanup: Retención de {RetentionDays} días, limpieza a las {CleanupHour}:00", 
+        builder.Configuration.GetValue<int>("Logging:RetentionDays", 30),
+        builder.Configuration.GetValue<int>("Logging:CleanupHour", 3));
+
+    await app.RunAsync();
+}
+catch (Exception ex)
 {
-    app.UseDeveloperExceptionPage();
+    Log.Fatal(ex, "❌ La aplicación terminó inesperadamente");
+    throw;
 }
-else
+finally
 {
-    app.UseExceptionHandler("/Error");
-    app.UseHsts();
+    Log.Information("🛑 Aplicación detenida");
+    Log.CloseAndFlush();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-// Configurar endpoints de Health Checks
-ConfigureHealthCheckEndpoints(app);
-
-// Mostrar información del ambiente al iniciar
-app.Logger.LogInformation("Aplicación iniciada en ambiente: {Environment}", environment);
-app.Logger.LogInformation("Swagger habilitado: {SwaggerEnabled}", enableSwagger);
-
-await app.RunAsync();
 
 // Constantes para Health Check tags
 const string ApplicationTag = "application";
@@ -122,18 +295,6 @@ static void ConfigureHealthChecks(IServiceCollection services, IConfiguration co
             new[] { ExternalServicesTag },
             args: new object[] { notificationServiceUrl, "Notification Service" });
     }
-
-    // Configurar UI de Health Checks (solo en Development y QA) - TEMPORALMENTE DESHABILITADO
-    // if (environment.Equals("Development", StringComparison.OrdinalIgnoreCase) ||
-    //     environment.Equals("qa", StringComparison.OrdinalIgnoreCase))
-    // {
-    //     services.AddHealthChecksUI(options =>
-    //     {
-    //         options.SetEvaluationTimeInSeconds(30);
-    //         options.MaximumHistoryEntriesPerEndpoint(50);
-    //         options.AddHealthCheckEndpoint($"Portal Pacientes API - {environment}", "/health");
-    //     });
-    // }
 }
 
 // Método para configurar endpoints de Health Checks
@@ -183,15 +344,4 @@ static void ConfigureHealthCheckEndpoints(WebApplication app)
         Predicate = check => check.Tags.Contains(ApplicationTag) || check.Tags.Contains(ConfigurationTag),
         AllowCachingResponses = false
     });
-
-    // UI de Health Checks (solo en Development y QA) - TEMPORALMENTE DESHABILITADO
-    // if (environment.Equals("Development", StringComparison.OrdinalIgnoreCase) ||
-    //     environment.Equals("qa", StringComparison.OrdinalIgnoreCase))
-    // {
-    //     app.MapHealthChecksUI(options =>
-    //     {
-    //         options.UIPath = "/health-ui";
-    //         options.ApiPath = "/health-api";
-    //     });
-    // }
 }

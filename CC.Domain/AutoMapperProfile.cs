@@ -4,15 +4,26 @@ using CC.Domain.Entities;
 
 namespace CC.Domain
 {
+    /// <summary>
+    /// Perfil de AutoMapper para configuración de mapeos entre entidades y DTOs
+    /// </summary>
     public class AutoMapperProfile : Profile
     {
         public AutoMapperProfile()
         {
-            CreateMap<FrecuentQuestions, FrecuentQuestionsDto>().ReverseMap();
+            // Mapeos de entidades CRUD
+            CreateMap<FrequentQuestions, FrequentQuestionsDto>().ReverseMap();
             CreateMap<CardioTV, CardioTVDto>().ReverseMap();
             CreateMap<Question, QuestionDto>().ReverseMap();
             CreateMap<ResponseQuestion, ResponseQuestionDto>().ReverseMap()
                 .ForMember(dest => dest.Question, opt => opt.Ignore());
+            CreateMap<GeneralSettings, GeneralSettingsDto>().ReverseMap();
+            CreateMap<DocType, DocTypeDto>().ReverseMap();
+
+            // Mapeo de OtpChallenge con manejo especial de CodeHash
+            CreateMap<OtpChallenge, OtpChallengeDto>()
+                .ReverseMap()
+                .ForMember(dest => dest.CodeHash, opt => opt.Ignore());
         }
     }
 }
