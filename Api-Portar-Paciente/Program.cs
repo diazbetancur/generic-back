@@ -51,6 +51,10 @@ try
     builder.Services.AddHostedService<LogCleanupService>();
     Log.Information("LogCleanupService registrado como Hosted Service");
 
+    // ===== AUTH CLEANUP SERVICE =====
+    builder.Services.AddHostedService<AuthCleanupService>();
+    Log.Information("AuthCleanupService registrado como Hosted Service");
+
     // ===== RATE LIMITING CONFIGURATION =====
     builder.Services.AddMemoryCache();
     builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
