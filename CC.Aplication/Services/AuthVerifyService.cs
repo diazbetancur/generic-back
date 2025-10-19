@@ -38,21 +38,18 @@ namespace CC.Aplication.Services
 
         public async Task<VerifyOtpResponse> VerifyAsync(VerifyOtpRequest request, CancellationToken ct = default)
         {
-            // Cargar challenge
             var challenge = await _otpRepo.FindByIdAsync(request.ChallengeId).ConfigureAwait(false);
             if (challenge == null || challenge.UsedAt != null || challenge.ExpiresAt < DateTime.UtcNow)
             {
                 throw new UnauthorizedAccessException("Challenge inválido o expirado");
             }
 
-            // Verificar identidad
             var docType = await _docTypeRepo.FindByAlternateKeyAsync(d => d.Code == request.DocTypeCode).ConfigureAwait(false);
             if (docType == null || challenge.DocTypeId != docType.Id || challenge.DocNumber != request.DocNumber)
             {
                 throw new UnauthorizedAccessException("Identidad no coincide");
             }
 
-            // Validar OTP comparando hash
             if (!VerifyOtpHash(challenge.CodeHash, request.Otp))
             {
                 challenge.FailedAttempts++;
@@ -60,7 +57,6 @@ namespace CC.Aplication.Services
 
                 if (challenge.FailedAttempts >= 3)
                 {
-                    // invalidar challenge y pedir reenvío desde front
                     challenge.ExpiresAt = DateTime.UtcNow.AddSeconds(-1);
                     await _otpRepo.UpdateAsync(challenge).ConfigureAwait(false);
                     throw new UnauthorizedAccessException("OTP inválido. Máximo de intentos alcanzado, solicite reenvío.");
@@ -69,11 +65,9 @@ namespace CC.Aplication.Services
                 throw new UnauthorizedAccessException("OTP inválido");
             }
 
-            // OTP válido
             challenge.UsedAt = DateTime.UtcNow;
             await _otpRepo.UpdateAsync(challenge).ConfigureAwait(false);
 
-            // Política de sesiones: eliminar todas las previas del usuario y crear una nueva.
             var userId = $"{request.DocTypeCode}-{request.DocNumber}";
             await InvalidateAllUserSessionsAsync(userId).ConfigureAwait(false);
 
@@ -83,7 +77,6 @@ namespace CC.Aplication.Services
 
             var token = BuildJwt(jti, userId, expires);
 
-            // Crear sesión activa
             var session = new Sessions
             {
                 DocTypeId = docType.Id,

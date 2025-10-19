@@ -1,20 +1,55 @@
 using CC.Domain.Interfaces.External;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace CC.Infrastructure.External
 {
+    /// <summary>
+    /// Adaptador para mantener compatibilidad con IEmailSender legacy usando GraphEmailService
+    /// </summary>
     public class EmailSender : IEmailSender
     {
-        private readonly IConfiguration _config;
+        private readonly IGraphEmailService _graphEmailService;
+        private readonly ILogger<EmailSender> _logger;
 
-        public EmailSender(IConfiguration config)
+        public EmailSender(IGraphEmailService graphEmailService, ILogger<EmailSender> logger)
         {
-            _config = config;
+            _graphEmailService = graphEmailService ?? throw new ArgumentNullException(nameof(graphEmailService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task SendAsync(string destination, string subject, string htmlBody, CancellationToken ct = default)
+        public async Task SendAsync(string destination, string subject, string message, CancellationToken ct = default)
         {
-            await Task.CompletedTask;
+            try
+            {
+                var result = await _graphEmailService.SendEmailAsync(
+                    destination,
+                    subject,
+                    message,
+                    isHtml: true,
+                    cancellationToken: ct);
+
+                if (!result.Success)
+                {
+                    throw new InvalidOperationException($"Error al enviar email: {result.ErrorMessage}");
+                }
+
+                _logger.LogInformation(
+                    "EmailSender: Email enviado exitosamente a {Destination}",
+                    MaskEmail(destination));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "EmailSender: Excepción al enviar email a {Destination}", MaskEmail(destination));
+            }
+        }
+
+        private static string MaskEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+                return "****@****.***";
+
+            var parts = email.Split('@');
+            return $"{parts[0][..2]}****@****.{parts[1].Split('.')[^1]}";
         }
     }
 }

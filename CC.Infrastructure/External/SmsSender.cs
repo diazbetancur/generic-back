@@ -19,19 +19,13 @@ namespace CC.Infrastructure.External
 
         public async Task SendAsync(string destination, string message, CancellationToken ct = default)
         {
-            _logger.LogDebug("SmsSender: Delegando envío a LiwaSmsService");
-
             try
             {
                 var result = await _liwaSmsService.SendSmsAsync(destination, message, ct);
 
                 if (!result.Success)
                 {
-                    _logger.LogWarning(
-                        "SmsSender: Error al enviar SMS a {Destination}: {Error}",
-                        MaskPhone(destination), result.ErrorMessage);
-                    
-                    throw new InvalidOperationException($"Error al enviar SMS: {result.ErrorMessage}");
+                    throw new InvalidOperationException($"Error al enviar SMS");
                 }
 
                 _logger.LogInformation(
@@ -41,7 +35,6 @@ namespace CC.Infrastructure.External
             catch (Exception ex)
             {
                 _logger.LogError(ex, "SmsSender: Excepción al enviar SMS a {Destination}", MaskPhone(destination));
-                throw;
             }
         }
 

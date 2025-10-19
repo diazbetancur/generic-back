@@ -67,7 +67,6 @@ namespace CC.Infrastructure.External
 
             try
             {
-                // Obtener token de autenticación
                 var token = await GetAuthTokenAsync(cancellationToken);
                 if (string.IsNullOrEmpty(token))
                 {
@@ -75,10 +74,8 @@ namespace CC.Infrastructure.External
                     return new SmsResult(false, null, null, "Error de autenticación");
                 }
 
-                // Formatear número (agregar código de país si no lo tiene)
                 var formattedNumber = FormatPhoneNumber(phoneNumber);
 
-                // Crear request
                 var request = new LiwaSendSingleSmsRequest
                 {
                     Number = formattedNumber,
@@ -86,7 +83,6 @@ namespace CC.Infrastructure.External
                     Type = Options.DefaultMessageType
                 };
 
-                // Enviar SMS con token Bearer
                 var response = await SendAuthenticatedRequestAsync<LiwaSendSingleSmsRequest, LiwaSendSmsResponse>(
                     HttpMethod.Post,
                     Options.SendSingleEndpoint,
@@ -145,7 +141,6 @@ namespace CC.Infrastructure.External
 
             try
             {
-                // Obtener token de autenticación
                 var token = await GetAuthTokenAsync(cancellationToken);
                 if (string.IsNullOrEmpty(token))
                 {
@@ -153,7 +148,6 @@ namespace CC.Infrastructure.External
                     return new SmsBulkResult(false, null, 0, "Error de autenticación");
                 }
 
-                // Construir lista de mensajes
                 var smsMessages = messages.Select(kvp => new LiwaSmsMessage
                 {
                     CodeCountry = Options.DefaultCountryCode,
@@ -162,7 +156,6 @@ namespace CC.Infrastructure.External
                     Type = Options.DefaultMessageType
                 }).ToList();
 
-                // Formatear fecha si se proporciona
                 var sendingDate = scheduledDate?.ToString("yyyy-MM-dd HH:mm:ss");
 
                 var request = new LiwaSendMultipleSmsRequest
@@ -172,7 +165,6 @@ namespace CC.Infrastructure.External
                     Messages = smsMessages
                 };
 
-                // Enviar campaña
                 var response = await SendAuthenticatedRequestAsync<LiwaSendMultipleSmsRequest, LiwaSendMultipleSmsResponse>(
                     HttpMethod.Post,
                     Options.SendMultipleEndpoint,
@@ -232,7 +224,6 @@ namespace CC.Infrastructure.External
         /// </summary>
         private async Task<string?> GetAuthTokenAsync(CancellationToken cancellationToken)
         {
-            // Intentar obtener de cache
             if (_cache.TryGetValue<string>(TokenCacheKey, out var cachedToken))
             {
                 Logger.LogDebug("Token de Liwa obtenido de cache");
@@ -249,7 +240,6 @@ namespace CC.Infrastructure.External
                     Password = Options.Password
                 };
 
-                // NO usar SendAuthenticatedRequestAsync aquí (no tenemos token aún)
                 var response = await PostAsync<LiwaAuthRequest, LiwaAuthResponse>(
                     Options.AuthEndpoint,
                     authRequest,
@@ -257,7 +247,6 @@ namespace CC.Infrastructure.External
 
                 if (!string.IsNullOrEmpty(response?.Token))
                 {
-                    // Guardar en cache
                     var cacheOptions = new MemoryCacheEntryOptions
                     {
                         AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Options.TokenExpirationMinutes)
@@ -300,19 +289,12 @@ namespace CC.Infrastructure.External
             try
             {
                 using var request = new HttpRequestMessage(method, endpoint);
-
-                // Agregar Bearer token
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
 
-                // Agregar contenido si es POST/PUT
                 if (method == HttpMethod.Post || method == HttpMethod.Put)
                 {
                     request.Content = JsonContent.Create(requestData, options: JsonOptions);
                 }
-
-                Logger.LogDebug(
-                    "Enviando {Method} request autenticado a {Endpoint}",
-                    method.Method, endpoint);
 
                 var startTime = DateTime.UtcNow;
                 using var response = await HttpClient.SendAsync(request, cancellationToken);
@@ -350,7 +332,6 @@ namespace CC.Infrastructure.External
         {
             var cleaned = CleanPhoneNumber(phoneNumber);
 
-            // Si no tiene código de país, agregarlo
             if (!cleaned.StartsWith(Options.DefaultCountryCode))
             {
                 return Options.DefaultCountryCode + cleaned;

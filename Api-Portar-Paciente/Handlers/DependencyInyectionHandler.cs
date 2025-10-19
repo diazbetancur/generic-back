@@ -78,6 +78,8 @@ namespace Api_Portar_Paciente.Handlers
                 services.AddSingleton<ILogger>(logger);
 
                 #endregion Logging
+
+                services.AddTransient<SeedDB>();
             }
             catch (Exception ex)
             {
@@ -111,9 +113,9 @@ namespace Api_Portar_Paciente.Handlers
                 options.AllowInvalidCerts = configuration.GetValue<bool>("ExternalsAPI:AllowInvalidCerts", false);
             });
 
-            var allowInvalidCerts = configuration.GetValue<bool>("ExternalsAPI:AllowInvalidCerts") || 
+            var allowInvalidCerts = configuration.GetValue<bool>("ExternalsAPI:AllowInvalidCerts") ||
                                    configuration.GetValue<bool>("ApiSettings:AllowInvalidCerts");
-            
+
             services.AddHttpClient<IExternalPatientService, ExternalPatientService>()
                     .ConfigurePrimaryHttpMessageHandler(() => HttpClientConfiguration.CreateHandler(allowInvalidCerts));
 
@@ -135,6 +137,43 @@ namespace Api_Portar_Paciente.Handlers
             });
 
             services.AddHttpClient<ILiwaSmsService, LiwaSmsService>();
+
+            // Microsoft Graph Email Service
+            services.Configure<CC.Infrastructure.External.Email.EmailServiceOptions>(options =>
+            {
+                options.ServiceName = "GraphEmailService";
+                options.BaseUrl = "https://graph.microsoft.com/v1.0";
+                options.TimeoutSeconds = configuration.GetValue<int>("ExternalServices:Email:TimeoutSeconds", 30);
+                options.TenantId = configuration["ExternalServices:Email:TenantId"] ?? string.Empty;
+                options.ClientId = configuration["ExternalServices:Email:ClientId"] ?? string.Empty;
+                options.ClientSecret = configuration["ExternalServices:Email:ClientSecret"] ?? string.Empty;
+                options.SendFromUserId = configuration["ExternalServices:Email:SendFromUserId"] ?? string.Empty;
+                options.DefaultFromEmail = configuration["ExternalServices:Email:DefaultFromEmail"] ?? string.Empty;
+                options.DefaultFromName = configuration["ExternalServices:Email:DefaultFromName"] ?? "Portal Pacientes";
+                options.GraphBaseUrl = "https://graph.microsoft.com/v1.0";
+                options.Scopes = new[] { "https://graph.microsoft.com/.default" };
+            });
+
+            services.AddHttpClient<IGraphEmailService, GraphEmailService>();
+
+            // Xero Viewer Service (Visor de Imágenes Diagnósticas)
+            services.Configure<CC.Infrastructure.External.Xero.XeroViewerOptions>(options =>
+            {
+                options.ServiceName = "XeroViewerService";
+                options.BaseUrl = configuration["ExternalServices:XeroViewer:BaseUrl"] ?? "http://10.3.0.79:6663";
+                options.TimeoutSeconds = configuration.GetValue<int>("ExternalServices:XeroViewer:TimeoutSeconds", 30);
+                options.ApiKey = configuration["ExternalServices:XeroViewer:ApiKey"] ?? "C4rdio1nfanf1l";
+                options.HealthEndpoint = "/health";
+                options.StudiesEndpoint = "/patients/{patient_id}/studies";
+                options.ViewerLinkEndpoint = "/studies/{study_uid}/viewer-link";
+                options.DefaultLimit = 10;
+                options.MaxLimit = 50;
+                options.AllowInvalidCerts = configuration.GetValue<bool>("ExternalServices:XeroViewer:AllowInvalidCerts", false);
+            });
+
+            var xeroAllowInvalidCerts = configuration.GetValue<bool>("ExternalServices:XeroViewer:AllowInvalidCerts");
+            services.AddHttpClient<IXeroViewerService, XeroViewerService>()
+                    .ConfigurePrimaryHttpMessageHandler(() => HttpClientConfiguration.CreateHandler(xeroAllowInvalidCerts));
 
             // SMS and Email senders (legacy - mantener compatibilidad)
             services.AddScoped<ISmsSender, SmsSender>();

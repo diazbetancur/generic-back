@@ -182,6 +182,24 @@ try
 
     var app = builder.Build();
 
+    // ===== INICIALIZAR BASE DE DATOS (SEED) =====
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            var seeder = services.GetRequiredService<CC.Infrastructure.Configurations.SeedDB>();
+            await seeder.SeedAsync();
+            Log.Information("✅ Base de datos inicializada correctamente (Seed completado)");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "❌ Error al inicializar la base de datos (Seed)");
+            // No lanzar excepción para permitir que la aplicación inicie
+            // pero registrar el error para investigación
+        }
+    }
+
     // ===== USAR SERILOG PARA REQUESTS HTTP =====
     app.UseSerilogRequestLogging(options =>
     {

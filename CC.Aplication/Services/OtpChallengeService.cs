@@ -105,17 +105,11 @@ namespace CC.Aplication.Services
                 {
                     await _smsSender.SendAsync(contact.Mobile!, message, ct).ConfigureAwait(false);
                     challenge.DeliveredToSms = true;
-                    Logger.LogInformation(
-                        "OTP enviado por SMS a {MaskedPhone} para challenge {ChallengeId}",
-                        maskedPhone, challenge.Id);
                 }
                 if (!string.IsNullOrWhiteSpace(contact.Email))
                 {
                     await _emailSender.SendAsync(contact.Email!, "Código de verificación", message, ct).ConfigureAwait(false);
                     challenge.DeliveredToEmail = true;
-                    Logger.LogInformation(
-                        "OTP enviado por Email a {MaskedEmail} para challenge {ChallengeId}",
-                        maskedEmail, challenge.Id);
                 }
 
                 await _otpRepo.UpdateAsync(challenge).ConfigureAwait(false);
