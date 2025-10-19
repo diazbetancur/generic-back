@@ -71,7 +71,14 @@ namespace CC.Aplication.Services
                         _settingsRepo,
                         "MensajeSinContacto",
                         "No se encontraron medios de contacto. Por favor comuníquese con el servicio de atención.");
-                    throw new KeyNotFoundException(mensaje);
+
+                    return new ValidateAuthResponse(
+                        Guid.Empty,
+                        null,
+                        null,
+                        null,
+                        null,
+                        mensaje);
                 }
 
                 var otp = GenerateOtp(4);
@@ -119,7 +126,8 @@ namespace CC.Aplication.Services
                     maskedPhone,
                     maskedEmail,
                     contact.FullName,
-                    contact.History
+                    contact.History,
+                    null
                 );
             }
             catch (Exception ex)

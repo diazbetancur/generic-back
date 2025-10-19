@@ -12,9 +12,10 @@ namespace CC.Domain.Dtos
     // Validate: valida usuario, genera OTP y retorna datos enmascarados
     public record ValidateAuthRequest(string DocTypeCode, string DocNumber);
     public record ValidateAuthResponse(
-        Guid ChallengeId, 
-        string? MaskedPhone, 
-        string? MaskedEmail, 
-        string? FullName, 
-        string? History);
+        Guid ChallengeId,
+        string? MaskedPhone,
+        string? MaskedEmail,
+        string? FullName,
+        string? History,
+        string? Message);
 }

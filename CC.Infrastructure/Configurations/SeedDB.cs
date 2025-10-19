@@ -59,6 +59,16 @@
                     IsActive = true,
                 }
                 );
+
+                _dbContext.DocTypes.Add(new Domain.Entities.DocType
+                {
+                    DateCreated = DateTime.Now,
+                    Id = Guid.NewGuid(),
+                    Code = "PP",
+                    Description = "Pasaporte",
+                    IsActive = true,
+                }
+);
                 await _dbContext.SaveChangesAsync();
             }
         }
