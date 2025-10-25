@@ -24,7 +24,7 @@ namespace Api_Portar_Paciente.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetAllAsync()
         {
-            return Ok(await _docTypeService.GetAllAsync(x => x.IsActive).ConfigureAwait(false));
+            return Ok(await _docTypeService.GetAllAsync().ConfigureAwait(false));
         }
 
         /// <summary>
