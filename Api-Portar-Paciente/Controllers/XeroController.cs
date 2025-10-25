@@ -9,13 +9,12 @@ namespace Api_Portar_Paciente.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Requiere autenticación
-    public class XeroViewerTestController : ControllerBase
+    public class XeroController : ControllerBase
     {
         private readonly IXeroViewerService _xeroService;
-        private readonly ILogger<XeroViewerTestController> _logger;
+        private readonly ILogger<XeroController> _logger;
 
-        public XeroViewerTestController(IXeroViewerService xeroService, ILogger<XeroViewerTestController> logger)
+        public XeroController(IXeroViewerService xeroService, ILogger<XeroController> logger)
         {
             _xeroService = xeroService;
             _logger = logger;

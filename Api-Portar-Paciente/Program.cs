@@ -46,6 +46,17 @@ try
         .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
         .AddEnvironmentVariables();
 
+    // ===== CORS CONFIGURATION =====
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll", policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+    });
+
     // Add services to the container.
     builder.Services.AddControllers();
 
