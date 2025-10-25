@@ -265,6 +265,9 @@ try
     // ===== RATE LIMITING MIDDLEWARE (ANTES DE AUTHENTICATION) =====
     app.UseIpRateLimiting();
 
+    // ===== CORS =====
+    app.UseCors("AllowAll");
+
     app.UseAuthentication();
     app.UseAuthorization();
 
@@ -288,7 +291,7 @@ try
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "❌ La aplicación terminó inesperadamente");
+    Log.Fatal(ex, "❌ La aplicación terminó unexpectedly");
     throw;
 }
 finally
