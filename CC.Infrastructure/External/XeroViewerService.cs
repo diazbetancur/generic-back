@@ -31,12 +31,22 @@ namespace CC.Infrastructure.External
         {
             base.ConfigureHttpClient();
 
-            // Agregar API Key como header X-API-Key
+            // Agregar API Key como header X-API-Key (evitar duplicados)
             if (!string.IsNullOrWhiteSpace(Options.ApiKey))
             {
-                HttpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-API-Key", Options.ApiKey);
-                Logger.LogDebug("API Key de Xero configurada en headers");
+                try
+                {
+                    HttpClient.DefaultRequestHeaders.Remove("X-API-Key");
+                    HttpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-API-Key", Options.ApiKey);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning(ex, "No fue posible establecer header X-API-Key");
+                }
             }
+
+            if (!HttpClient.DefaultRequestHeaders.Accept.Any())
+                HttpClient.DefaultRequestHeaders.Accept.ParseAdd("application/json");
         }
 
         /// <summary>
@@ -74,12 +84,11 @@ namespace CC.Infrastructure.External
 
                 var url = BuildUrl(endpoint, queryParams);
 
-                // Realizar petición
                 var response = await GetAsync<XeroStudiesResponse>(url, cancellationToken);
 
                 if (response == null)
                 {
-                    Logger.LogWarning("Respuesta nula al obtener estudios de paciente {PatientId}", patientId);
+                    Logger.LogWarning("Respuesta nula al obtener estudios de paciente {PatientId} reespuesta {response}", patientId, response);
                     return new StudiesResult(
                         false, patientId, offset, limit, 0, 0, null, null,
                         "Sin respuesta del servidor Xero");
@@ -143,7 +152,7 @@ namespace CC.Infrastructure.External
                     PatientId = patientId
                 };
 
-                // Realizar petición POST
+                // Realizar petición POST directa
                 var response = await PostAsync<XeroViewerLinkRequest, XeroViewerLinkResponse>(
                     endpoint,
                     request,
@@ -161,7 +170,7 @@ namespace CC.Infrastructure.External
                 DateTime? expiresAt = null;
                 if (!string.IsNullOrEmpty(response.ExpiresAt))
                 {
-                    if (DateTime.TryParse(response.ExpiresAt, CultureInfo.InvariantCulture, 
+                    if (DateTime.TryParse(response.ExpiresAt, CultureInfo.InvariantCulture,
                         DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var parsed))
                     {
                         expiresAt = parsed;
