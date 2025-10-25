@@ -8,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using CC.Domain.Interfaces.Repositories;
 
 namespace CC.Aplication.Services
 {
@@ -21,19 +22,22 @@ namespace CC.Aplication.Services
         private readonly ISessionsRepository _sessionRepo;
         private readonly IGeneralSettingsRepository _settingsRepo;
         private readonly IConfiguration _config;
+        private readonly ILoginAttemptRepository _loginAttemptRepo;
 
         public AuthVerifyService(
             IOtpChallengeRepository otpRepo,
             IDocTypeRepository docTypeRepo,
             ISessionsRepository sessionRepo,
             IGeneralSettingsRepository settingsRepo,
-            IConfiguration config)
+            IConfiguration config,
+            ILoginAttemptRepository loginAttemptRepo)
         {
             _otpRepo = otpRepo;
             _docTypeRepo = docTypeRepo;
             _sessionRepo = sessionRepo;
             _settingsRepo = settingsRepo;
             _config = config;
+            _loginAttemptRepo = loginAttemptRepo;
         }
 
         public async Task<VerifyOtpResponse> VerifyAsync(VerifyOtpRequest request, CancellationToken ct = default)
@@ -41,12 +45,14 @@ namespace CC.Aplication.Services
             var challenge = await _otpRepo.FindByIdAsync(request.ChallengeId).ConfigureAwait(false);
             if (challenge == null || challenge.UsedAt != null || challenge.ExpiresAt < DateTime.UtcNow)
             {
+                await SaveAttempt(request, success: false, reason: "ChallengeInvalidOrExpired");
                 throw new UnauthorizedAccessException("Challenge inválido o expirado");
             }
 
             var docType = await _docTypeRepo.FindByAlternateKeyAsync(d => d.Code == request.DocTypeCode).ConfigureAwait(false);
             if (docType == null || challenge.DocTypeId != docType.Id || challenge.DocNumber != request.DocNumber)
             {
+                await SaveAttempt(request, success: false, reason: "IdentityMismatch");
                 throw new UnauthorizedAccessException("Identidad no coincide");
             }
 
@@ -54,6 +60,8 @@ namespace CC.Aplication.Services
             {
                 challenge.FailedAttempts++;
                 await _otpRepo.UpdateAsync(challenge).ConfigureAwait(false);
+
+                await SaveAttempt(request, success: false, reason: "InvalidOtp");
 
                 if (challenge.FailedAttempts >= 3)
                 {
@@ -89,6 +97,8 @@ namespace CC.Aplication.Services
                 IsActive = true
             };
             await _sessionRepo.AddAsync(session).ConfigureAwait(false);
+
+            await SaveAttempt(request, success: true, reason: "Success");
 
             return new VerifyOtpResponse(token, expires);
         }
@@ -152,6 +162,26 @@ namespace CC.Aplication.Services
                 signingCredentials: creds
             );
             return handler.WriteToken(token);
+        }
+
+        private async Task SaveAttempt(VerifyOtpRequest req, bool success, string reason)
+        {
+            try
+            {
+                var attempt = new LoginAttempt
+                {
+                    DocTypeCode = req.DocTypeCode,
+                    DocNumber = req.DocNumber,
+                    UserId = $"{req.DocTypeCode}-{req.DocNumber}",
+                    Success = success,
+                    Reason = reason,
+                    Ip = req.ClientIp,
+                    UserAgent = null,
+                    TraceId = System.Diagnostics.Activity.Current?.TraceId.ToString()
+                };
+                await _loginAttemptRepo.AddAsync(attempt).ConfigureAwait(false);
+            }
+            catch { }
         }
     }
 }

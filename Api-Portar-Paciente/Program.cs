@@ -38,6 +38,8 @@ try
     Log.Information("Ejecutándose en ambiente: {Environment}", environment);
 
     // Cargar configuraciones específicas del ambiente
+    Log.Information("Cargar configuraciones especificas del ambiente");
+
     builder.Configuration
         .SetBasePath(Directory.GetCurrentDirectory())
         .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -107,7 +109,7 @@ try
 
     // ===== CONFIGURAR SWAGGER CON DOCUMENTACIÓN XML =====
     var enableSwagger = builder.Configuration.GetValue<bool>("Features:EnableSwagger");
-    if (enableSwagger)
+    if (enableSwagger || true)
     {
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
@@ -229,6 +231,8 @@ try
             c.EnableDeepLinking();
             c.EnableFilter();
             c.EnableTryItOutByDefault();
+
+            c.InjectJavascript("/swagger-ext/polyfills.js");
         });
 
         Log.Information("Swagger UI disponible en /swagger");
@@ -253,6 +257,9 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
+    // Heartbeat de sesión (actualiza LastSeenAt con throttling)
+    app.UseMiddleware<Api_Portar_Paciente.Handlers.SessionHeartbeatMiddleware>();
+
     app.MapControllers();
 
     // Configurar endpoints de Health Checks
@@ -262,7 +269,7 @@ try
     Log.Information("✅ Aplicación iniciada en ambiente: {Environment}", environment);
     Log.Information("📚 Swagger habilitado: {SwaggerEnabled}", enableSwagger);
     Log.Information("🚦 Rate Limiting habilitado: {RateLimitingEnabled}", true);
-    Log.Information("🧹 Log Cleanup: Retención de {RetentionDays} días, limpieza a las {CleanupHour}:00", 
+    Log.Information("🧹 Log Cleanup: Retención de {RetentionDays} días, limpieza a las {CleanupHour}:00",
         builder.Configuration.GetValue<int>("Logging:RetentionDays", 30),
         builder.Configuration.GetValue<int>("Logging:CleanupHour", 3));
 

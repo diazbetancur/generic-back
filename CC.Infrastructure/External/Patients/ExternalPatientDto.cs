@@ -23,7 +23,7 @@ namespace CC.Infrastructure.External.Patients
         public string? Correo { get; set; }
 
         [JsonPropertyName("historia")]
-        public string? Historia { get; set; }
+        public long? Historia { get; set; }
 
         [JsonPropertyName("apellido")]
         public string? Apellido { get; set; }

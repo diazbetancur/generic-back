@@ -94,15 +94,15 @@ namespace Api_Portar_Paciente.Services
             {
                 _logger.Information("Iniciando limpieza de datos de autenticación");
 
-                // Limpiar OTP Challenges expirados
+                // Limpiar OTP Challenges expirados (se eliminan)
                 var otpDeletedCount = await CleanupOtpChallengesAsync(dbContext, stoppingToken);
 
-                // Limpiar Sessions inactivas/expiradas
-                var sessionsDeletedCount = await CleanupSessionsAsync(dbContext, stoppingToken);
+                // Cerrar sesiones expiradas (soft-close) y NO borrar físicamente
+                var sessionsUpdatedCount = await SoftCloseExpiredSessionsAsync(dbContext, stoppingToken);
 
                 _logger.Information(
-                    "Limpieza de autenticación completada: {OtpDeleted} OTP challenges eliminados, {SessionsDeleted} sesiones eliminadas",
-                    otpDeletedCount, sessionsDeletedCount);
+                    "Limpieza de autenticación completada: {OtpDeleted} OTP challenges eliminados, {SessionsUpdated} sesiones cerradas (soft-close)",
+                    otpDeletedCount, sessionsUpdatedCount);
 
                 // Estadísticas finales
                 await LogDatabaseStatsAsync(dbContext, stoppingToken);
@@ -150,40 +150,34 @@ namespace Api_Portar_Paciente.Services
             }
         }
 
-        private async Task<int> CleanupSessionsAsync(DBContext dbContext, CancellationToken stoppingToken)
+        private async Task<int> SoftCloseExpiredSessionsAsync(DBContext dbContext, CancellationToken stoppingToken)
         {
             try
             {
-                var cutoffDate = DateTime.UtcNow.AddDays(-_sessionRetentionDays);
-
-                _logger.Debug(
-                    "Eliminando sesiones inactivas/expiradas antes de: {CutoffDate}",
-                    cutoffDate);
-
-                // Eliminar sesiones inactivas o revocadas que ya expiraron
-                var deletedCount = await dbContext.Database.ExecuteSqlRawAsync(
-                    @"DELETE FROM Sessions 
-                      WHERE (IsActive = 0 OR RevokedAt IS NOT NULL)
-                        AND (ExpiresAt < {0} OR RevokedAt < {0})",
-                    cutoffDate,
+                // Cerrar sesiones activas que ya expiraron, conservando el registro para telemetría
+                var updated = await dbContext.Database.ExecuteSqlRawAsync(
+                    @"UPDATE Sessions 
+                      SET IsActive = 0,
+                          RevokedAt = COALESCE(RevokedAt, ExpiresAt)
+                      WHERE IsActive = 1 AND ExpiresAt < {0}",
+                    DateTime.UtcNow,
                     stoppingToken);
 
-                if (deletedCount > 0)
+                if (updated > 0)
                 {
-                    _logger.Information(
-                        "Sesiones eliminadas: {Count} registros (inactivas antes de {CutoffDate})",
-                        deletedCount, cutoffDate);
+                    _logger.Information("Sesiones cerradas por expiración (soft-close): {Count}", updated);
                 }
                 else
                 {
-                    _logger.Information("No hay sesiones inactivas para eliminar");
+                    _logger.Information("No hay sesiones activas expiradas para cerrar");
                 }
 
-                return deletedCount;
+                // Ya no se eliminan sesiones inactivas/expiradas; se mantienen para reporting
+                return updated;
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Error al limpiar sesiones");
+                _logger.Error(ex, "Error al cerrar sesiones expiradas");
                 return 0;
             }
         }

@@ -1,8 +1,8 @@
-﻿using CC.Aplication.Services;
-using AutoMapper;
+﻿using CC.Domain.Interfaces.External;
 using CC.Domain.Interfaces.Repositories;
 using CC.Domain.Interfaces.Services;
 using CC.Infrastructure.Configurations;
+using CC.Infrastructure.External;
 using CC.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,8 +11,7 @@ using Serilog;
 using Serilog.Core;
 using System.Reflection;
 using ILogger = Serilog.ILogger;
-using CC.Domain.Interfaces.External;
-using CC.Infrastructure.External;
+using CC.Aplication.Services;
 
 namespace Api_Portar_Paciente.Handlers
 {
@@ -101,6 +100,9 @@ namespace Api_Portar_Paciente.Handlers
             // Auth Services (ahora siguen patrón ServiceBase)
             services.AddScoped<IOtpChallengeService, OtpChallengeService>();
             services.AddScoped<IAuthVerifyService, AuthVerifyService>();
+
+            // Reports Service
+            services.AddScoped<IReportsService, ReportsService>();
 
             // External integrations - Patient Service con Options pattern
             services.Configure<CC.Infrastructure.External.Patients.ExternalPatientOptions>(options =>
@@ -193,6 +195,7 @@ namespace Api_Portar_Paciente.Handlers
             services.AddScoped<IDocTypeRepository, DocTypeRepository>();
             services.AddScoped<IOtpChallengeRepository, OtpChallengeRepository>();
             services.AddScoped<ISessionsRepository, SessionsRepository>();
+            services.AddScoped<ILoginAttemptRepository, LoginAttemptRepository>();
         }
     }
 }

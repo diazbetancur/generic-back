@@ -151,11 +151,14 @@ namespace CC.Infrastructure.External
                 .Where(s => !string.IsNullOrWhiteSpace(s));
             var fullName = string.Join(" ", nameParts);
 
+            // historia puede venir como número; convertir a string
+            var history = dto.Historia?.ToString();
+
             return new ExternalPatientContact(
                 Mobile: mobile,
                 Email: dto.Correo,
                 FullName: string.IsNullOrWhiteSpace(fullName) ? null : fullName,
-                History: dto.Historia
+                History: history
             );
         }
     }

@@ -59,6 +59,11 @@ namespace CC.Infrastructure.Configurations
         /// </summary>
         public DbSet<GeneralSettings> GeneralSettings { get; set; }
 
+        /// <summary>
+        /// Intentos de inicio de sesión
+        /// </summary>
+        public DbSet<LoginAttempt> LoginAttempts { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -105,11 +110,23 @@ namespace CC.Infrastructure.Configurations
             builder.Entity<Sessions>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<Sessions>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
             builder.Entity<Sessions>().HasIndex(s => s.Jti).IsUnique();
+            builder.Entity<Sessions>().HasIndex(s => s.IssuedAt);
+            builder.Entity<Sessions>().HasIndex(s => s.LastSeenAt);
+            builder.Entity<Sessions>().HasIndex(s => s.IsActive);
 
+            // GeneralSettings Configuration
             builder.Entity<GeneralSettings>().HasKey(c => c.Id);
             builder.Entity<GeneralSettings>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<GeneralSettings>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
             builder.Entity<GeneralSettings>().HasIndex(g => g.Key).IsUnique();
+
+            // LoginAttempt Configuration
+            builder.Entity<LoginAttempt>().HasKey(c => c.Id);
+            builder.Entity<LoginAttempt>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<LoginAttempt>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<LoginAttempt>().HasIndex(l => l.DateCreated);
+            builder.Entity<LoginAttempt>().HasIndex(l => new { l.Success, l.DateCreated });
+            builder.Entity<LoginAttempt>().HasIndex(l => new { l.DocNumber, l.DateCreated });
 
             DisableCascadingDelete(builder);
         }
