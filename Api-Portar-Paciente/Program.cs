@@ -271,6 +271,9 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
+    // ===== ERROR HANDLING MIDDLEWARE =====
+    app.UseMiddleware<Api_Portar_Paciente.Handlers.ErrorHandlingMiddleware>();
+
     // Heartbeat de sesión (actualiza LastSeenAt con throttling)
     app.UseMiddleware<Api_Portar_Paciente.Handlers.SessionHeartbeatMiddleware>();
 
@@ -338,6 +341,29 @@ static void ConfigureHealthChecks(IServiceCollection services, IConfiguration co
             new[] { ExternalServicesTag },
             args: new object[] { notificationServiceUrl, "Notification Service" });
     }
+
+    // ===== HEALTH CHECKS UI =====
+    var enableHealthUI = configuration.GetValue<bool>("HealthChecks:UIEnabled", false);
+    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+
+    if (enableHealthUI && (environment.Equals("Development", StringComparison.OrdinalIgnoreCase) ||
+                           environment.Equals("qa", StringComparison.OrdinalIgnoreCase)))
+    {
+        services.AddHealthChecksUI(options =>
+        {
+            options.SetEvaluationTimeInSeconds(30);
+            options.MaximumHistoryEntriesPerEndpoint(50);
+            options.AddHealthCheckEndpoint($"Portal Pacientes API - {environment}", "/health");
+        })
+        .AddInMemoryStorage(); // Usar almacenamiento en memoria para UI
+
+        Log.Information("Health Checks UI habilitado para ambiente: {Environment}", environment);
+    }
+    else
+    {
+        Log.Information("Health Checks UI deshabilitado. Environment: {Environment}, UIEnabled: {UIEnabled}",
+            environment, enableHealthUI);
+    }
 }
 
 // Método para configurar endpoints de Health Checks
@@ -387,4 +413,21 @@ static void ConfigureHealthCheckEndpoints(WebApplication app)
         Predicate = check => check.Tags.Contains(ApplicationTag) || check.Tags.Contains(ConfigurationTag),
         AllowCachingResponses = false
     });
+
+    // ===== HEALTH CHECKS UI ENDPOINTS =====
+    var configuration = app.Services.GetRequiredService<IConfiguration>();
+    var enableHealthUI = configuration.GetValue<bool>("HealthChecks:UIEnabled", false);
+    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+
+    if (enableHealthUI && (environment.Equals("Development", StringComparison.OrdinalIgnoreCase) ||
+                           environment.Equals("qa", StringComparison.OrdinalIgnoreCase)))
+    {
+        app.MapHealthChecksUI(options =>
+        {
+            options.UIPath = "/health-ui";
+            options.ApiPath = "/health-api";
+        });
+
+        Log.Information("Health Checks UI disponible en /health-ui");
+    }
 }

@@ -64,6 +64,11 @@ namespace CC.Infrastructure.Configurations
         /// </summary>
         public DbSet<LoginAttempt> LoginAttempts { get; set; }
 
+        /// <summary>
+        /// Registro de telemetría de la aplicación (consultas, descargas y métricas)
+        /// </summary>
+        public DbSet<TelemetryLog> TelemetryLogs { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -127,6 +132,16 @@ namespace CC.Infrastructure.Configurations
             builder.Entity<LoginAttempt>().HasIndex(l => l.DateCreated);
             builder.Entity<LoginAttempt>().HasIndex(l => new { l.Success, l.DateCreated });
             builder.Entity<LoginAttempt>().HasIndex(l => new { l.DocNumber, l.DateCreated });
+
+            // TelemetryLog Configuration
+            builder.Entity<TelemetryLog>().HasKey(c => c.Id);
+            builder.Entity<TelemetryLog>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<TelemetryLog>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<TelemetryLog>().HasIndex(t => t.ActivityDate);
+            builder.Entity<TelemetryLog>().HasIndex(t => new { t.UserDocType, t.UserDocNumber });
+            builder.Entity<TelemetryLog>().HasIndex(t => new { t.DocumentType, t.ActivityType });
+            builder.Entity<TelemetryLog>().HasIndex(t => new { t.ActivityType, t.ActivityDate });
+            builder.Entity<TelemetryLog>().HasIndex(t => new { t.TelemetryType, t.ActivityDate });
 
             DisableCascadingDelete(builder);
         }

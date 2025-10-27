@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CC.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class baseData : Migration
+    public partial class @base : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -137,6 +137,26 @@ namespace CC.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "LoginAttempts",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
+                    DocTypeCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DocNumber = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Success = table.Column<bool>(type: "bit", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Ip = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserAgent = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TraceId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LoginAttempts", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Questions",
                 columns: table => new
                 {
@@ -171,6 +191,26 @@ namespace CC.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Sessions", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TelemetryLogs",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
+                    UserDocType = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    UserDocNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    DocumentType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ActivityType = table.Column<int>(type: "int", nullable: false),
+                    ActivityDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Source = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    TelemetryType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    AdditionalData = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TelemetryLogs", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -381,6 +421,21 @@ namespace CC.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_LoginAttempts_DateCreated",
+                table: "LoginAttempts",
+                column: "DateCreated");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LoginAttempts_DocNumber_DateCreated",
+                table: "LoginAttempts",
+                columns: new[] { "DocNumber", "DateCreated" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LoginAttempts_Success_DateCreated",
+                table: "LoginAttempts",
+                columns: new[] { "Success", "DateCreated" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OtpChallenges_DocTypeId",
                 table: "OtpChallenges",
                 column: "DocTypeId");
@@ -396,10 +451,50 @@ namespace CC.Infrastructure.Migrations
                 column: "QuestionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Sessions_IsActive",
+                table: "Sessions",
+                column: "IsActive");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sessions_IssuedAt",
+                table: "Sessions",
+                column: "IssuedAt");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Sessions_Jti",
                 table: "Sessions",
                 column: "Jti",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sessions_LastSeenAt",
+                table: "Sessions",
+                column: "LastSeenAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TelemetryLogs_ActivityDate",
+                table: "TelemetryLogs",
+                column: "ActivityDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TelemetryLogs_ActivityType_ActivityDate",
+                table: "TelemetryLogs",
+                columns: new[] { "ActivityType", "ActivityDate" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TelemetryLogs_DocumentType_ActivityType",
+                table: "TelemetryLogs",
+                columns: new[] { "DocumentType", "ActivityType" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TelemetryLogs_TelemetryType_ActivityDate",
+                table: "TelemetryLogs",
+                columns: new[] { "TelemetryType", "ActivityDate" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TelemetryLogs_UserDocType_UserDocNumber",
+                table: "TelemetryLogs",
+                columns: new[] { "UserDocType", "UserDocNumber" });
         }
 
         /// <inheritdoc />
@@ -433,6 +528,9 @@ namespace CC.Infrastructure.Migrations
                 name: "GeneralSettings");
 
             migrationBuilder.DropTable(
+                name: "LoginAttempts");
+
+            migrationBuilder.DropTable(
                 name: "OtpChallenges");
 
             migrationBuilder.DropTable(
@@ -440,6 +538,9 @@ namespace CC.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Sessions");
+
+            migrationBuilder.DropTable(
+                name: "TelemetryLogs");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

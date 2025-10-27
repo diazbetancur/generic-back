@@ -97,6 +97,9 @@ namespace Api_Portar_Paciente.Handlers
             services.AddScoped<IGeneralSettingsService, GeneralSettingService>();
             services.AddScoped<IDocTypeService, DocTypeService>();
 
+            // Telemetry Service (telemetría de la aplicación)
+            services.AddScoped<ITelemetryService, TelemetryService>();
+
             // Auth Services (ahora siguen patrón ServiceBase)
             services.AddScoped<IOtpChallengeService, OtpChallengeService>();
             services.AddScoped<IAuthVerifyService, AuthVerifyService>();
@@ -189,6 +192,9 @@ namespace Api_Portar_Paciente.Handlers
             services.AddScoped<ICardioTVRepository, CardioTVRepository>();
             services.AddScoped<IQuestionRepository, QuestionRepository>();
             services.AddScoped<IResponseQuestionRepository, ResponseQuestionRepository>();
+
+            // Telemetry Repository (telemetría de la aplicación)
+            services.AddScoped<ITelemetryRepository, TelemetryRepository>();
 
             // Auth-related repositories
             services.AddScoped<IGeneralSettingsRepository, GeneralSettingsRepository>();

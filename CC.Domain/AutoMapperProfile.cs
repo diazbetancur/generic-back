@@ -20,6 +20,9 @@ namespace CC.Domain
             CreateMap<GeneralSettings, GeneralSettingsDto>().ReverseMap();
             CreateMap<DocType, DocTypeDto>().ReverseMap();
 
+            // Mapeo de TelemetryLog para telemetría de la aplicación
+            CreateMap<TelemetryLog, TelemetryDto>().ReverseMap();
+
             // Mapeo de OtpChallenge con manejo especial de CodeHash
             CreateMap<OtpChallenge, OtpChallengeDto>()
                 .ReverseMap()
