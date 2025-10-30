@@ -159,8 +159,8 @@ namespace Api_Portar_Paciente.Controllers
         /// <param name="startDate">Fecha de inicio del rango (opcional)</param>
         /// <param name="endDate">Fecha final del rango (opcional)</param>
         /// <returns>Estadísticas agrupadas</returns>
-        [HttpGet("statistics")
-public async Task<IActionResult> GetStatistics(
+        [HttpGet("statistics")]
+        public async Task<IActionResult> GetStatistics(
             [FromQuery] ActivityType? activityType = null,
             [FromQuery] string? telemetryType = null,
             [FromQuery] DateTime? startDate = null,
