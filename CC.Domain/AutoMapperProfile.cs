@@ -19,7 +19,9 @@ namespace CC.Domain
                 .ForMember(dest => dest.Question, opt => opt.Ignore());
             CreateMap<GeneralSettings, GeneralSettingsDto>().ReverseMap();
             CreateMap<DocType, DocTypeDto>().ReverseMap();
-            CreateMap<DataPolicyAcceptance, DataPolicyAcceptanceDto>().ReverseMap();
+
+            CreateMap<DataPolicyAcceptance, DataPolicyAcceptanceDto>().ReverseMap()
+                .ForMember(dest => dest.DocType, opt => opt.Ignore());
 
             // Mapeo de TelemetryLog para telemetría de la aplicación
             CreateMap<TelemetryLog, TelemetryDto>().ReverseMap();
@@ -27,7 +29,8 @@ namespace CC.Domain
             // Mapeo de OtpChallenge con manejo especial de CodeHash
             CreateMap<OtpChallenge, OtpChallengeDto>()
                 .ReverseMap()
-                .ForMember(dest => dest.CodeHash, opt => opt.Ignore());
+                .ForMember(dest => dest.CodeHash, opt => opt.Ignore())
+                .ForMember(dest => dest.DocType, opt => opt.Ignore());
         }
     }
 }

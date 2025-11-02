@@ -3,6 +3,7 @@ namespace CC.Domain.Entities
     public class Sessions : EntityBase<Guid>
     {
         public Guid DocTypeId { get; set; }
+        public virtual DocType DocType { get; set; }
         public string DocNumber { get; set; }
         public string UserId { get; set; }
         public string Jti { get; set; }

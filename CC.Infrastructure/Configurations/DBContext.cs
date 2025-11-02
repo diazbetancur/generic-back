@@ -69,6 +69,12 @@ namespace CC.Infrastructure.Configurations
         /// </summary>
         public DbSet<TelemetryLog> TelemetryLogs { get; set; }
 
+        /// <summary>
+        /// Aceptacion de politicas de datos
+        /// </summary>
+        /// <param name="builder"></param>
+        public DbSet<DataPolicyAcceptance> DataPolicyAcceptances { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -143,6 +149,10 @@ namespace CC.Infrastructure.Configurations
             builder.Entity<TelemetryLog>().HasIndex(t => new { t.ActivityType, t.ActivityDate });
             builder.Entity<TelemetryLog>().HasIndex(t => new { t.TelemetryType, t.ActivityDate });
 
+            // DataPolicyAcceptance Configuration
+            builder.Entity<DataPolicyAcceptance>().HasKey(c => c.Id);
+            builder.Entity<DataPolicyAcceptance>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<DataPolicyAcceptance>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
             DisableCascadingDelete(builder);
         }
 

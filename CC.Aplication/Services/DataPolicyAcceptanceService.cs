@@ -38,14 +38,16 @@ namespace CC.Aplication.Services
                     return null;
                 }
 
-                entityDto.DoctTypeId = docType.Id;
+                // Alinear ambos IDs para cumplir FK
+                entityDto.DocTypeId = docType.Id;
 
-                var exists = await _dataPolicyAcceptanceRepo.AnyAsync(x => x.DoctTypeId == entityDto.DoctTypeId && x.DocNumber == docNumber)
+                var exists = await _dataPolicyAcceptanceRepo.AnyAsync(x => x.DocTypeId == entityDto.DocTypeId && x.DocNumber == docNumber)
                     .ConfigureAwait(false);
                 if (exists)
                 {
                     return null;
                 }
+
                 return await base.AddAsync(entityDto).ConfigureAwait(false);
             }
             catch (Exception ex)

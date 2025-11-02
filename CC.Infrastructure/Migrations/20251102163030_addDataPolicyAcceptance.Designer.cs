@@ -4,6 +4,7 @@ using CC.Infrastructure.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CC.Infrastructure.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20251102163030_addDataPolicyAcceptance")]
+    partial class addDataPolicyAcceptance
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -111,44 +114,6 @@ namespace CC.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CardioTVs");
-                });
-
-            modelBuilder.Entity("CC.Domain.Entities.DataPolicyAcceptance", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasDefaultValueSql("NEWID()");
-
-                    b.Property<DateTime>("AcceptanceDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DateCreated")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("DocNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("DocTypeId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("IpAddress")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsAccepted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("PolicyVersion")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DocTypeId");
-
-                    b.ToTable("DataPolicyAcceptances");
                 });
 
             modelBuilder.Entity("CC.Domain.Entities.DocType", b =>
@@ -479,8 +444,6 @@ namespace CC.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DocTypeId");
-
                     b.HasIndex("IsActive");
 
                     b.HasIndex("IssuedAt");
@@ -722,17 +685,6 @@ namespace CC.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("CC.Domain.Entities.DataPolicyAcceptance", b =>
-                {
-                    b.HasOne("CC.Domain.Entities.DocType", "DocType")
-                        .WithMany()
-                        .HasForeignKey("DocTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DocType");
-                });
-
             modelBuilder.Entity("CC.Domain.Entities.OtpChallenge", b =>
                 {
                     b.HasOne("CC.Domain.Entities.DocType", "DocType")
@@ -753,17 +705,6 @@ namespace CC.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Question");
-                });
-
-            modelBuilder.Entity("CC.Domain.Entities.Sessions", b =>
-                {
-                    b.HasOne("CC.Domain.Entities.DocType", "DocType")
-                        .WithMany()
-                        .HasForeignKey("DocTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DocType");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

@@ -4,6 +4,7 @@ using CC.Infrastructure.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CC.Infrastructure.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20251102180956_updateDataPolicyAcceptances")]
+    partial class updateDataPolicyAcceptances
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -132,7 +135,7 @@ namespace CC.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("DocTypeId")
+                    b.Property<Guid>("DocumentTypeId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("IpAddress")
@@ -146,7 +149,7 @@ namespace CC.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DocTypeId");
+                    b.HasIndex("DocumentTypeId");
 
                     b.ToTable("DataPolicyAcceptances");
                 });
@@ -479,8 +482,6 @@ namespace CC.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DocTypeId");
-
                     b.HasIndex("IsActive");
 
                     b.HasIndex("IssuedAt");
@@ -724,13 +725,13 @@ namespace CC.Infrastructure.Migrations
 
             modelBuilder.Entity("CC.Domain.Entities.DataPolicyAcceptance", b =>
                 {
-                    b.HasOne("CC.Domain.Entities.DocType", "DocType")
+                    b.HasOne("CC.Domain.Entities.DocType", "DocumentType")
                         .WithMany()
-                        .HasForeignKey("DocTypeId")
+                        .HasForeignKey("DocumentTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("DocType");
+                    b.Navigation("DocumentType");
                 });
 
             modelBuilder.Entity("CC.Domain.Entities.OtpChallenge", b =>
@@ -753,17 +754,6 @@ namespace CC.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Question");
-                });
-
-            modelBuilder.Entity("CC.Domain.Entities.Sessions", b =>
-                {
-                    b.HasOne("CC.Domain.Entities.DocType", "DocType")
-                        .WithMany()
-                        .HasForeignKey("DocTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DocType");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
