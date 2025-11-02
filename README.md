@@ -1,6 +1,6 @@
 # Portal Pacientes API
 
-API en .NET 8 organizada en arquitectura por capas y preparada para múltiples ambientes (Development, QA, Producción) con auditoría, health checks y soft delete.
+API en .NET8 organizada en arquitectura por capas y preparada para múltiples ambientes (Development, QA, Producción) con auditoría, health checks y soft delete.
 
 ## 🧱 Arquitectura por Capas
 
@@ -17,6 +17,12 @@ API en .NET 8 organizada en arquitectura por capas y preparada para múltiples a
 - Configuración por ambiente (appsettings.* + variables)
 - Observabilidad (logs + health endpoints)
 
+## ✅ Prerrequisitos
+- .NET SDK8.0+
+- SQL Server2019+ o Azure SQL
+- PowerShell7+ (recomendado) o CMD
+- (Opcional) Herramientas EF Core si usarás CLI: `dotnet tool install --global dotnet-ef`
+
 ## 📑 Auditoría (Resumen)
 Auditoría habilitable vía `Auditing:Enabled` captura operaciones CREATE / UPDATE / DELETE antes de persistir.
 Campos registrados: Usuario (placeholder), Entidad, Acción, Valores Anteriores, Valores Nuevos, Campos Cambiados, Fecha UTC, TraceId.
@@ -30,7 +36,7 @@ Endpoints expuestos:
 - `/health/application`
 - `/health/configuration`
 - `/health/external-services`
-HealthChecks UI temporalmente comentada hasta definir almacenamiento.
+- (si UI habilitado) `/health-ui`
 
 ## 🌐 Configuración de Ambientes
 
@@ -83,9 +89,9 @@ $env:ConnectionStrings__DefaultConnection = "Server=mi-servidor;Database=mi-bd;.
 ### 🔐 Configuraciones Recomendadas
 | Ambiente | Swagger | Logging Nivel | JWT Expiration | Error Details |
 |----------|---------|---------------|----------------|---------------|
-| Development | On | Debug | 8h | On |
-| QA | On | Information | 2h | On |
-| Production | Off | Warning/Error | 1h | Off |
+| Development | On | Debug |8h | On |
+| QA | On | Information |2h | On |
+| Production | Off | Warning/Error |1h | Off |
 
 ### 🔒 Seguridad
 ⚠️ Importante:
@@ -102,6 +108,68 @@ $env:ConnectionStrings__DefaultConnection = "Server=mi-servidor;Database=mi-bd;.
 - [ ] Probar health checks
 - [ ] Confirmar Swagger deshabilitado en producción
 
+## 🧩 Feature Flags y Mocks
+Ejemplo de configuración (appsettings.*):
+```json
+{
+ "Features": {
+ "EnableSwagger": true,
+ "EnableDetailedLogging": true,
+ "EnableMetrics": false,
+ "UseMockPatientService": true,
+ "UseMockXeroService": true
+ },
+ "Mocks": {
+ "Xero": {
+ "ViewerUrlBase": "https://xero-mock-viewer.local/view?study=",
+ "ExpiresMinutes":15,
+ "StaticToken": null
+ }
+ }
+}
+```
+- UseMockPatientService: usa `MockExternalPatientService` en lugar del servicio real.
+- UseMockXeroService: usa `MockXeroViewerService` que devuelve datos mock y link de visor configurable.
+
+## 🔗 Configuración de Servicios Externos
+- Servicio de Pacientes (on-prem):
+```json
+{
+ "ExternalsAPI": {
+ "PatienteBaseUrl": "https://10.3.0.66:8596",
+ "PatienteTimeoutSeconds":60,
+ "AllowInvalidCerts": true,
+ "ApiKey": null
+ }
+}
+```
+- Xero Viewer:
+```json
+{
+ "ExternalServices": {
+ "XeroViewer": {
+ "BaseUrl": "http://10.3.0.79:6663",
+ "TimeoutSeconds":30,
+ "ApiKey": "<requerido en producción>",
+ "AllowInvalidCerts": false
+ }
+ }
+}
+```
+- SMS y Email (resumen): definir credenciales/tenant/secret según ambiente para `ExternalServices:Sms` y `ExternalServices:Email`.
+
+## 🔍 Endpoints de prueba
+- Swagger: `/swagger`
+- Health: `/health`, `/health/ready`, `/health/application`, `/health/configuration`, `/health/external-services`, `/health-ui`
+- Xero (testing):
+ - `GET api/Xero/health`
+ - `GET api/Xero/patients/{patientId}/studies`
+ - `POST api/Xero/studies/{studyUid}/viewer-link`
+
+## 🌱 Seed de Base de Datos
+- Al iniciar la app, se ejecuta `SeedDB.SeedAsync()` automáticamente.
+- Si ocurre un error de seed, se registra pero no detiene el arranque de la aplicación.
+
 ## 🛠️ Comandos Útiles
 ```powershell
 # Construir Release
@@ -115,10 +183,73 @@ dotnet run --project .\Api-Portar-Paciente\Api-Portar-Paciente.csproj --environm
 ```
 
 ## 🗃️ Migraciones EF Core
-```powershell
-# Crear migración
-dotnet ef migrations add <Nombre> -p .\CC.Infrastructure\CC.Infrastructure.csproj -s .\Api-Portar-Paciente\Api-Portar-Paciente.csproj
 
-# Aplicar migraciones
-dotnet ef database update -p .\CC.Infrastructure\CC.Infrastructure.csproj -s .\Api-Portar-Paciente\Api-Portar-Paciente.csproj
+Notas:
+- El `DbContext` se llama `DBContext` y vive en el proyecto `CC.Infrastructure`.
+- El proyecto de inicio (startup) es `Api-Portar-Paciente`.
+- Ejecuta los comandos desde la carpeta raíz de la solución.
+
+### Opción1: .NET CLI (dotnet-ef)
+Instalar herramientas EF (una vez):
+```powershell
+dotnet tool install --global dotnet-ef
 ```
+
+Agregar migración (incluyendo el contexto explícito):
+```powershell
+dotnet ef migrations add <NombreMigracion> \
+ -p .\CC.Infrastructure\CC.Infrastructure.csproj \
+ -s .\Api-Portar-Paciente\Api-Portar-Paciente.csproj \
+ --context DBContext
+```
+
+Actualizar base de datos (incluyendo el contexto explícito):
+```powershell
+dotnet ef database update \
+ -p .\CC.Infrastructure\CC.Infrastructure.csproj \
+ -s .\Api-Portar-Paciente\Api-Portar-Paciente.csproj \
+ --context DBContext
+```
+
+Revertir última migración (sin aplicar a la base):
+```powershell
+dotnet ef migrations remove \
+ -p .\CC.Infrastructure\CC.Infrastructure.csproj \
+ -s .\Api-Portar-Paciente\Api-Portar-Paciente.csproj \
+ --context DBContext
+```
+
+Apuntar a una migración específica:
+```powershell
+dotnet ef database update <NombreMigracion> \
+ -p .\CC.Infrastructure\CC.Infrastructure.csproj \
+ -s .\Api-Portar-Paciente\Api-Portar-Paciente.csproj \
+ --context DBContext
+```
+
+### Opción2: Package Manager Console (Visual Studio)
+Recomendado si `dotnet ef` presenta fallos de arranque del host.
+
+Pasos previos:
+- En Visual Studio, abrir `Tools > NuGet Package Manager > Package Manager Console`.
+- Seleccionar `Default project`: `CC.Infrastructure`.
+- Asegurar que el proyecto de inicio (Startup Project) sea `Api-Portar-Paciente`.
+
+Comandos (use el nombre exacto del contexto: `DBContext`):
+```powershell
+# Agregar migración
+Add-Migration <NombreMigracion> -Context DBContext 
+
+# Actualizar base de datos
+Update-Database -Context DBContext 
+
+# Revertir última migración (no aplica cambios a la DB)
+Remove-Migration -Context DBContext 
+
+# Actualizar a una migración específica
+Update-Database <NombreMigracion> -Context DBContext
+```
+
+Tips:
+- Si usas PMC, no necesitas instalar `dotnet-ef`.
+- Si recibes errores de inicio del host, valida `ConnectionStrings:DefaultConnection` en appsettings y el proyecto de inicio.
