@@ -2,69 +2,29 @@ using CC.Domain.Contracts;
 using CC.Domain.Interfaces.External;
 using CC.Infrastructure.External.Base;
 using CC.Infrastructure.External.Patients;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace CC.Infrastructure.External
 {
     /// <summary>
-    /// Servicio para integración con API externa de pacientes
+    /// Servicio para integración con API externa de pacientes (solo implementación real)
     /// </summary>
     public class ExternalPatientService : ExternalServiceBase<ExternalPatientOptions>, IExternalPatientService
     {
-        private readonly bool _useMockData;
-
-        // Datos mock para desarrollo local
-        private static readonly List<ExternalPatientContact> _mockPatients = new()
-        {
-            new ExternalPatientContact(
-                Mobile: "3122305410",
-                Email: "juan.perez@email.com",
-                FullName: "Juan Pérez García",
-                History: "HC123456"
-            ),
-            new ExternalPatientContact(
-                Mobile: "3122305410",
-                Email: "maria.rodriguez@email.com",
-                FullName: "María Rodríguez López",
-                History: "HC789012"
-            ),
-            new ExternalPatientContact(
-                Mobile: "3122305410",
-                Email: "carlos.gomez@email.com",
-                FullName: "Carlos Gómez Hernández",
-                History: "HC345678"
-            )
-        };
-
         public ExternalPatientService(
             HttpClient httpClient,
             IOptions<ExternalPatientOptions> options,
-            ILogger<ExternalPatientService> logger,
-            IConfiguration configuration)
+            ILogger<ExternalPatientService> logger)
             : base(httpClient, options.Value, logger)
         {
-            // Leer configuración como boolean (maneja tanto "true" string como true boolean)
-            var mockConfig = configuration["Features:UseMockPatientService"];
-            _useMockData = !string.IsNullOrEmpty(mockConfig) && 
-                          (mockConfig.Equals("true", StringComparison.OrdinalIgnoreCase) || mockConfig == "True");
-
-            // Validar configuración solo si NO estamos en modo mock
-            if (!_useMockData && !Options.IsValid())
+            if (!Options.IsValid())
             {
                 throw new InvalidOperationException(
                     $"Configuración inválida para ExternalPatientService: {Options.GetValidationErrors()}");
             }
 
-            if (_useMockData)
-            {
-                Logger.LogWarning("?? USANDO DATOS MOCK - ExternalPatientService (SOLO DESARROLLO)");
-            }
-            else
-            {
-                Logger.LogInformation("ExternalPatientService inicializado correctamente");
-            }
+            Logger.LogInformation("ExternalPatientService inicializado correctamente");
         }
 
         /// <summary>
@@ -79,29 +39,6 @@ namespace CC.Infrastructure.External
             string docNumber,
             CancellationToken ct = default)
         {
-            // ===== MODO MOCK: Retornar datos simulados =====
-            if (_useMockData)
-            {
-                Logger.LogInformation(
-                    "?? MOCK: Simulando consulta de paciente - DocType: {DocType}, DocNumber: {DocNumber}",
-                    docTypeCode, docNumber);
-
-                // Simular delay de red (realismo)
-                await Task.Delay(200, ct);
-
-                // Seleccionar paciente mock basado en último dígito del documento
-                var lastDigit = docNumber.Length > 0 ? int.Parse(docNumber[^1].ToString()) : 0;
-                var index = lastDigit % _mockPatients.Count;
-                var mockPatient = _mockPatients[index];
-
-                Logger.LogInformation(
-                    "?? MOCK: Paciente simulado encontrado - Historia: {Historia}, Nombre: {Nombre}",
-                    mockPatient.History, mockPatient.FullName);
-
-                return mockPatient;
-            }
-
-            // ===== MODO REAL: Consultar API externa =====
             Logger.LogInformation(
                 "Consultando paciente externo: DocType={DocType}, DocNumber={DocNumber}",
                 docTypeCode, docNumber);

@@ -12,6 +12,7 @@ using Serilog.Core;
 using System.Reflection;
 using ILogger = Serilog.ILogger;
 using CC.Aplication.Services;
+using CC.Infrastructure.External.Mocks;
 
 namespace Api_Portar_Paciente.Handlers
 {
@@ -89,26 +90,25 @@ namespace Api_Portar_Paciente.Handlers
 
         public static void ServicesRegistration(IServiceCollection services, IConfiguration configuration)
         {
-            // CRUD Services (siguen patrón ServiceBase)
-            services.AddScoped<IFrequentQuestionsService, FrequentQuestionsService>();
-            services.AddScoped<ICardioTVService, CardioTVService>();
-            services.AddScoped<IQuestionService, QuestionService>();
-            services.AddScoped<IResponseQuestionService, ResponseQuestionService>();
-            services.AddScoped<IGeneralSettingsService, GeneralSettingService>();
-            services.AddScoped<IDocTypeService, DocTypeService>();
-            services.AddScoped<IDataPolicyAcceptanceService, DataPolicyAcceptanceService>();
+            //1) Options centralizadas
+            ConfigureOptions(services, configuration);
 
-            // Telemetry Service (telemetría de la aplicación)
-            services.AddScoped<ITelemetryService, TelemetryService>();
+            //2) Servicios core de aplicación
+            RegisterCoreServices(services);
 
-            // Auth Services (ahora siguen patrón ServiceBase)
-            services.AddScoped<IOtpChallengeService, OtpChallengeService>();
-            services.AddScoped<IAuthVerifyService, AuthVerifyService>();
+            //3) Integraciones externas (reales por defecto)
+            RegisterExternalIntegrations(services, configuration);
 
-            // Reports Service
-            services.AddScoped<IReportsService, ReportsService>();
+            //4) Servicios de mensajería (SMS / Email)
+            RegisterMessagingServices(services, configuration);
 
-            // External integrations - Patient Service con Options pattern
+            //5) Overrides de mocks (al final, para que ganen sobre los reales)
+            RegisterMockOverrides(services, configuration);
+        }
+
+        private static void ConfigureOptions(IServiceCollection services, IConfiguration configuration)
+        {
+            // External Patient options
             services.Configure<CC.Infrastructure.External.Patients.ExternalPatientOptions>(options =>
             {
                 options.ServiceName = "ExternalPatientService";
@@ -119,13 +119,25 @@ namespace Api_Portar_Paciente.Handlers
                 options.AllowInvalidCerts = configuration.GetValue<bool>("ExternalsAPI:AllowInvalidCerts", false);
             });
 
-            var allowInvalidCerts = configuration.GetValue<bool>("ExternalsAPI:AllowInvalidCerts") ||
-                                   configuration.GetValue<bool>("ApiSettings:AllowInvalidCerts");
+            // Xero Viewer options
+            services.Configure<CC.Infrastructure.External.Xero.XeroViewerOptions>(options =>
+            {
+                options.ServiceName = "XeroViewerService";
+                options.BaseUrl = configuration["ExternalServices:XeroViewer:BaseUrl"] ?? "http://10.3.0.79:6663";
+                options.TimeoutSeconds = configuration.GetValue<int>("ExternalServices:XeroViewer:TimeoutSeconds", 30);
+                options.ApiKey = configuration["ExternalServices:XeroViewer:ApiKey"] ?? "C4rdio1nfanf1l";
+                options.HealthEndpoint = "/health";
+                options.StudiesEndpoint = "/patients/{patient_id}/studies";
+                options.ViewerLinkEndpoint = "/studies/{study_uid}/viewer-link";
+                options.DefaultLimit = 10;
+                options.MaxLimit = 50;
+                options.AllowInvalidCerts = configuration.GetValue<bool>("ExternalServices:XeroViewer:AllowInvalidCerts", false);
+            });
 
-            services.AddHttpClient<IExternalPatientService, ExternalPatientService>()
-                    .ConfigurePrimaryHttpMessageHandler(() => HttpClientConfiguration.CreateHandler(allowInvalidCerts));
+            // Mock Xero options (opcional)
+            services.Configure<MockXeroOptions>(configuration.GetSection("Mocks:Xero"));
 
-            // Liwa SMS Service
+            // SMS options
             services.Configure<CC.Infrastructure.External.Sms.SmsServiceOptions>(options =>
             {
                 options.ServiceName = "LiwaSmsService";
@@ -142,9 +154,7 @@ namespace Api_Portar_Paciente.Handlers
                 options.TokenExpirationMinutes = 55;
             });
 
-            services.AddHttpClient<ILiwaSmsService, LiwaSmsService>();
-
-            // Microsoft Graph Email Service
+            // Email options
             services.Configure<CC.Infrastructure.External.Email.EmailServiceOptions>(options =>
             {
                 options.ServiceName = "GraphEmailService";
@@ -159,31 +169,67 @@ namespace Api_Portar_Paciente.Handlers
                 options.GraphBaseUrl = "https://graph.microsoft.com/v1.0";
                 options.Scopes = new[] { "https://graph.microsoft.com/.default" };
             });
+        }
 
-            services.AddHttpClient<IGraphEmailService, GraphEmailService>();
+        private static void RegisterCoreServices(IServiceCollection services)
+        {
+            // CRUD Services (siguen patrón ServiceBase)
+            services.AddScoped<IFrequentQuestionsService, FrequentQuestionsService>();
+            services.AddScoped<ICardioTVService, CardioTVService>();
+            services.AddScoped<IQuestionService, QuestionService>();
+            services.AddScoped<IResponseQuestionService, ResponseQuestionService>();
+            services.AddScoped<IGeneralSettingsService, GeneralSettingService>();
+            services.AddScoped<IDocTypeService, DocTypeService>();
+            services.AddScoped<IDataPolicyAcceptanceService, DataPolicyAcceptanceService>();
 
-            // Xero Viewer Service (Visor de Imágenes Diagnósticas)
-            services.Configure<CC.Infrastructure.External.Xero.XeroViewerOptions>(options =>
-            {
-                options.ServiceName = "XeroViewerService";
-                options.BaseUrl = configuration["ExternalServices:XeroViewer:BaseUrl"] ?? "http://10.3.0.79:6663";
-                options.TimeoutSeconds = configuration.GetValue<int>("ExternalServices:XeroViewer:TimeoutSeconds", 30);
-                options.ApiKey = configuration["ExternalServices:XeroViewer:ApiKey"] ?? "C4rdio1nfanf1l";
-                options.HealthEndpoint = "/health";
-                options.StudiesEndpoint = "/patients/{patient_id}/studies";
-                options.ViewerLinkEndpoint = "/studies/{study_uid}/viewer-link";
-                options.DefaultLimit = 10;
-                options.MaxLimit = 50;
-                options.AllowInvalidCerts = configuration.GetValue<bool>("ExternalServices:XeroViewer:AllowInvalidCerts", false);
-            });
+            // Telemetry Service
+            services.AddScoped<ITelemetryService, TelemetryService>();
+
+            // Auth Services
+            services.AddScoped<IOtpChallengeService, OtpChallengeService>();
+            services.AddScoped<IAuthVerifyService, AuthVerifyService>();
+
+            // Reports
+            services.AddScoped<IReportsService, ReportsService>();
+        }
+
+        private static void RegisterExternalIntegrations(IServiceCollection services, IConfiguration configuration)
+        {
+            var allowInvalidCerts = configuration.GetValue<bool>("ExternalsAPI:AllowInvalidCerts") ||
+                                   configuration.GetValue<bool>("ApiSettings:AllowInvalidCerts");
+
+            services.AddHttpClient<IExternalPatientService, ExternalPatientService>()
+                .ConfigurePrimaryHttpMessageHandler(() => HttpClientConfiguration.CreateHandler(allowInvalidCerts));
 
             var xeroAllowInvalidCerts = configuration.GetValue<bool>("ExternalServices:XeroViewer:AllowInvalidCerts");
             services.AddHttpClient<IXeroViewerService, XeroViewerService>()
-                    .ConfigurePrimaryHttpMessageHandler(() => HttpClientConfiguration.CreateHandler(xeroAllowInvalidCerts));
+                .ConfigurePrimaryHttpMessageHandler(() => HttpClientConfiguration.CreateHandler(xeroAllowInvalidCerts));
+        }
 
-            // SMS and Email senders (legacy - mantener compatibilidad)
+        private static void RegisterMessagingServices(IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddHttpClient<ILiwaSmsService, LiwaSmsService>();
+            services.AddHttpClient<IGraphEmailService, GraphEmailService>();
+
+            // Envoltorios simples para envío
             services.AddScoped<ISmsSender, SmsSender>();
             services.AddScoped<IEmailSender, EmailSender>();
+        }
+
+        private static void RegisterMockOverrides(IServiceCollection services, IConfiguration configuration)
+        {
+            var useMockPatient = configuration.GetValue<bool>("Features:UseMockPatientService", false);
+            var useMockXero = configuration.GetValue<bool>("Features:UseMockXeroService", false);
+
+            if (useMockPatient)
+            {
+                services.AddScoped<IExternalPatientService, MockExternalPatientService>();
+            }
+
+            if (useMockXero)
+            {
+                services.AddScoped<IXeroViewerService, MockXeroViewerService>();
+            }
         }
 
         public static void RepositoryRegistration(IServiceCollection services)
@@ -194,7 +240,7 @@ namespace Api_Portar_Paciente.Handlers
             services.AddScoped<IQuestionRepository, QuestionRepository>();
             services.AddScoped<IResponseQuestionRepository, ResponseQuestionRepository>();
 
-            // Telemetry Repository (telemetría de la aplicación)
+            // Telemetry Repository
             services.AddScoped<ITelemetryRepository, TelemetryRepository>();
 
             // Auth-related repositories
