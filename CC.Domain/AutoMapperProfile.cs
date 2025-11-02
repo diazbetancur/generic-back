@@ -19,6 +19,7 @@ namespace CC.Domain
                 .ForMember(dest => dest.Question, opt => opt.Ignore());
             CreateMap<GeneralSettings, GeneralSettingsDto>().ReverseMap();
             CreateMap<DocType, DocTypeDto>().ReverseMap();
+            CreateMap<DataPolicyAcceptance, DataPolicyAcceptanceDto>().ReverseMap();
 
             // Mapeo de TelemetryLog para telemetría de la aplicación
             CreateMap<TelemetryLog, TelemetryDto>().ReverseMap();

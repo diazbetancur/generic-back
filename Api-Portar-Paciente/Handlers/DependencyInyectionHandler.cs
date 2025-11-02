@@ -96,6 +96,7 @@ namespace Api_Portar_Paciente.Handlers
             services.AddScoped<IResponseQuestionService, ResponseQuestionService>();
             services.AddScoped<IGeneralSettingsService, GeneralSettingService>();
             services.AddScoped<IDocTypeService, DocTypeService>();
+            services.AddScoped<IDataPolicyAcceptanceService, DataPolicyAcceptanceService>();
 
             // Telemetry Service (telemetría de la aplicación)
             services.AddScoped<ITelemetryService, TelemetryService>();
@@ -199,6 +200,7 @@ namespace Api_Portar_Paciente.Handlers
             // Auth-related repositories
             services.AddScoped<IGeneralSettingsRepository, GeneralSettingsRepository>();
             services.AddScoped<IDocTypeRepository, DocTypeRepository>();
+            services.AddScoped<IDataPolicyAcceptanceRepository, DataPolicyAcceptanceRepository>();
             services.AddScoped<IOtpChallengeRepository, OtpChallengeRepository>();
             services.AddScoped<ISessionsRepository, SessionsRepository>();
             services.AddScoped<ILoginAttemptRepository, LoginAttemptRepository>();

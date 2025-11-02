@@ -2,6 +2,7 @@
 using CC.Domain.Dtos;
 using CC.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Api_Portar_Paciente.Controllers
 {
@@ -32,6 +33,41 @@ namespace Api_Portar_Paciente.Controllers
         }
 
         /// <summary>
+        /// Endpoint público para obtener una configuración específica permitida.
+        /// </summary>
+        /// <param name="key">Clave de configuración</param>
+        /// <returns>Valor de la configuración si existe y está permitida</returns>
+        [HttpGet("public/{key}")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetPublicSetting(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+                return BadRequest(new { message = "La clave de configuración es requerida" });
+
+            var allowedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Public:TermsUrl",
+                "Public:PrivacyVersion",
+                "Public:SupportContact"
+            };
+
+            if (!allowedKeys.Contains(key))
+                return NotFound(new { message = "Configuración no disponible públicamente" });
+
+            var setting = await _generalSettingService
+                .FindByAlternateKeyAsync(x => x.Key == key)
+                .ConfigureAwait(false);
+
+            if (setting == null)
+                return NotFound(new { message = $"Configuración con clave '{key}' no encontrada" });
+
+            return Ok(new { key = setting.Key, value = setting.Value });
+        }
+
+        /// <summary>
         /// Obtiene una configuración por su ID
         /// </summary>
         /// <param name="id">ID de la configuración</param>
@@ -42,7 +78,7 @@ namespace Api_Portar_Paciente.Controllers
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
             var setting = await _generalSettingService.FindByIdAsync(id).ConfigureAwait(false);
-            
+
             if (setting == null)
                 return NotFound(new { message = $"Configuración con ID {id} no encontrada" });
 
@@ -70,7 +106,7 @@ namespace Api_Portar_Paciente.Controllers
 
             generalSettings.DateCreated = response.DateCreated;
             await _generalSettingService.UpdateAsync(generalSettings).ConfigureAwait(false);
-            
+
             return Ok(generalSettings);
         }
     }

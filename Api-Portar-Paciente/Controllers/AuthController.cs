@@ -15,13 +15,16 @@ namespace Api_Portar_Paciente.Controllers
     {
         private readonly IOtpChallengeService _otpService;
         private readonly IAuthVerifyService _verifyService;
+        private readonly IDataPolicyAcceptanceService _dataPolicyService;
 
         public AuthController(
             IOtpChallengeService otpService,
-            IAuthVerifyService verifyService)
+            IAuthVerifyService verifyService,
+            IDataPolicyAcceptanceService dataPolicyService)
         {
             _otpService = otpService;
             _verifyService = verifyService;
+            _dataPolicyService = dataPolicyService;
         }
 
         /// <summary>
@@ -31,6 +34,13 @@ namespace Api_Portar_Paciente.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Validate(ValidateAuthRequest request)
         {
+            await _dataPolicyService.AddAsync(new DataPolicyAcceptanceDto
+            {
+                DocTypeCode = request.DocTypeCode,
+                DocNumber = request.DocNumber,
+                IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                PolicyVersion = "1.0"
+            });
             var result = await _otpService.ValidateAndGenerateOtpAsync(request).ConfigureAwait(false);
             return Ok(result);
         }

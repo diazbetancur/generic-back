@@ -107,7 +107,12 @@ namespace CC.Aplication.Services
                 var maskedPhone = MaskingHelper.MaskPhone(contact.Mobile);
                 var maskedEmail = MaskingHelper.MaskEmail(contact.Email);
 
-                var message = $"Su código OTP es: {otp}";
+                var template = await SettingsHelper.GetStringSettingAsync(
+                    _settingsRepo,
+                    key: "OtpMessageTemplate",
+                    defaultValue: "Se ha generado el PIN: {OTP} para el acceso Portal Paciente LaCardio. Gracias");
+                var message = template.Replace("{OTP}", otp, StringComparison.OrdinalIgnoreCase);
+
                 if (!string.IsNullOrWhiteSpace(contact.Mobile))
                 {
                     await _smsSender.SendAsync(contact.Mobile!, message, ct).ConfigureAwait(false);
@@ -193,7 +198,12 @@ namespace CC.Aplication.Services
                     "Nuevo OTP challenge creado con ID: {NewChallengeId} reemplazando {OldChallengeId}",
                     newChallenge.Id, request.ChallengeId);
 
-                var message = $"Su código OTP es: {otp}";
+                var resendTemplate = await SettingsHelper.GetStringSettingAsync(
+                    _settingsRepo,
+                    key: "OtpMessageTemplate",
+                    defaultValue: "Se ha generado el PIN: {OTP} para el acceso Portal Paciente LaCardio. Gracias");
+                var message = resendTemplate.Replace("{OTP}", otp, StringComparison.OrdinalIgnoreCase);
+
                 if (!string.IsNullOrWhiteSpace(contact.Mobile))
                 {
                     await _smsSender.SendAsync(contact.Mobile!, message, ct).ConfigureAwait(false);
