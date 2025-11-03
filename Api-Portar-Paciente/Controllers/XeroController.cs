@@ -9,6 +9,7 @@ namespace Api_Portar_Paciente.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class XeroController : ControllerBase
     {
         private readonly IXeroViewerService _xeroService;

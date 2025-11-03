@@ -95,7 +95,8 @@ namespace CC.Infrastructure.External
                 Mobile: mobile,
                 Email: dto.Correo,
                 FullName: string.IsNullOrWhiteSpace(fullName) ? null : fullName,
-                History: history
+                History: history,
+                Address: dto.Address
             );
         }
     }

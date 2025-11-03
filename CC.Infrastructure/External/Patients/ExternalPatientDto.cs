@@ -33,5 +33,8 @@ namespace CC.Infrastructure.External.Patients
 
         [JsonPropertyName("nombre")]
         public string? Nombre { get; set; }
+
+        [JsonPropertyName("direccion")]
+        public string? Address { get; set; }
     }
 }

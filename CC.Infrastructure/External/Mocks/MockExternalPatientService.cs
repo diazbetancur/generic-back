@@ -18,19 +18,22 @@ namespace CC.Infrastructure.External.Mocks
                 Mobile: "3122305410",
                 Email: "juan.perez@email.com",
                 FullName: "Juan Pérez García",
-                History: "HC123456"
+                History: "HC123456",
+                Address: "Calle Falsa 123"
             ),
             new ExternalPatientContact(
                 Mobile: "3122305410",
                 Email: "maria.rodriguez@email.com",
                 FullName: "María Rodríguez López",
-                History: "HC789012"
+                History: "HC789012",
+                Address: "Calle Falsa 123"
             ),
             new ExternalPatientContact(
                 Mobile: "3205551234",
                 Email: "carlos.gomez@email.com",
                 FullName: "Carlos Gómez Hernández",
-                History: "HC345678"
+                History: "HC345678",
+                Address: "Calle Falsa 123"
             )
         };
 

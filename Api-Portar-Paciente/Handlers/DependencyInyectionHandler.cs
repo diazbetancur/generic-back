@@ -181,6 +181,7 @@ namespace Api_Portar_Paciente.Handlers
             services.AddScoped<IGeneralSettingsService, GeneralSettingService>();
             services.AddScoped<IDocTypeService, DocTypeService>();
             services.AddScoped<IDataPolicyAcceptanceService, DataPolicyAcceptanceService>();
+            services.AddScoped<IPatientService, PatientService>();
 
             // Telemetry Service
             services.AddScoped<ITelemetryService, TelemetryService>();
@@ -211,7 +212,7 @@ namespace Api_Portar_Paciente.Handlers
             services.AddHttpClient<ILiwaSmsService, LiwaSmsService>();
             services.AddHttpClient<IGraphEmailService, GraphEmailService>();
 
-            // Envoltorios simples para envío
+            // Envoltorios simples (legacy) para envío
             services.AddScoped<ISmsSender, SmsSender>();
             services.AddScoped<IEmailSender, EmailSender>();
         }
