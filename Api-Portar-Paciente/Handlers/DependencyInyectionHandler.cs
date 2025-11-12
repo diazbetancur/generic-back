@@ -287,10 +287,18 @@ namespace Api_Portar_Paciente.Handlers
             services.AddScoped<ICardioTVRepository, CardioTVRepository>();
             services.AddScoped<IQuestionRepository, QuestionRepository>();
             services.AddScoped<IResponseQuestionRepository, ResponseQuestionRepository>();
+
+            // RequestType and State Repositories
             services.AddScoped<IRequestTypeRepository, RequestTypeRepository>();
             services.AddScoped<IStateRepository, StateRepository>();
+
+            // Request and HistoryRequest Repositories
             services.AddScoped<IRequestRepository, RequestRepository>();
             services.AddScoped<IHistoryRequestRepository, HistoryRequestRepository>();
+
+            // Permission Repositories
+            services.AddScoped<IPermissionRepository, PermissionRepository>();
+            services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
 
             // Telemetry Repository
             services.AddScoped<ITelemetryRepository, TelemetryRepository>();

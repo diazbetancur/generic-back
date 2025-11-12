@@ -1,0 +1,43 @@
+// AGREGAR ESTOS DbSets DESPUÉS DE HistoryRequests EN DBContext.cs:
+
+/// <summary>
+/// Permisos del sistema
+/// </summary>
+public DbSet<Permission> Permissions { get; set; }
+
+/// <summary>
+/// Relación Roles-Permisos
+/// </summary>
+public DbSet<RolePermission> RolePermissions { get; set; }
+
+
+// AGREGAR ESTA CONFIGURACIÓN AL FINAL DEL MÉTODO OnModelCreating, ANTES DE DisableCascadingDelete:
+
+// Permission Configuration
+builder.Entity<Permission>().HasKey(c => c.Id);
+builder.Entity<Permission>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+builder.Entity<Permission>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+builder.Entity<Permission>().HasIndex(p => p.Name).IsUnique();
+builder.Entity<Permission>().HasIndex(p => p.Module);
+builder.Entity<Permission>().Property(p => p.Name).HasMaxLength(100).IsRequired();
+builder.Entity<Permission>().Property(p => p.Module).HasMaxLength(50).IsRequired();
+builder.Entity<Permission>().Property(p => p.Description).HasMaxLength(250);
+
+// RolePermission Configuration
+builder.Entity<RolePermission>().HasKey(c => c.Id);
+builder.Entity<RolePermission>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+builder.Entity<RolePermission>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+builder.Entity<RolePermission>().HasIndex(rp => new { rp.RoleId, rp.PermissionId }).IsUnique();
+
+// Relaciones
+builder.Entity<RolePermission>()
+    .HasOne(rp => rp.Role)
+    .WithMany()
+    .HasForeignKey(rp => rp.RoleId)
+    .OnDelete(DeleteBehavior.Cascade);
+
+builder.Entity<RolePermission>()
+    .HasOne(rp => rp.Permission)
+    .WithMany(p => p.RolePermissions)
+    .HasForeignKey(rp => rp.PermissionId)
+    .OnDelete(DeleteBehavior.Cascade);

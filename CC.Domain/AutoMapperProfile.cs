@@ -23,8 +23,14 @@ namespace CC.Domain
             CreateMap<DataPolicyAcceptance, DataPolicyAcceptanceDto>().ReverseMap()
                 .ForMember(dest => dest.DocType, opt => opt.Ignore());
 
+            // Mapeos de RequestType y State
             CreateMap<RequestType, RequestTypeDto>().ReverseMap();
             CreateMap<State, StateDto>().ReverseMap();
+
+            // Mapeos de Permission
+            CreateMap<Permission, PermissionDto>().ReverseMap();
+
+            // Mapeos de Request con proyecciones de navegación
             CreateMap<Request, RequestDto>()
                 .ReverseMap()
                 .ForMember(dest => dest.DocType, opt => opt.Ignore())
