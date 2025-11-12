@@ -94,6 +94,16 @@ namespace CC.Infrastructure.Configurations
         /// </summary>
         public DbSet<HistoryRequest> HistoryRequests { get; set; }
 
+        /// <summary>
+        /// Permisos del sistema
+        /// </summary>
+        public DbSet<Permission> Permissions { get; set; }
+
+        /// <summary>
+        /// Relación Roles-Permisos
+        /// </summary>
+        public DbSet<RolePermission> RolePermissions { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -186,6 +196,15 @@ namespace CC.Infrastructure.Configurations
             builder.Entity<HistoryRequest>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
             builder.Entity<HistoryRequest>().HasIndex(h => h.RequestId);
             builder.Entity<HistoryRequest>().HasIndex(h => h.DateCreated);
+
+            builder.Entity<Permission>().HasKey(c => c.Id);
+            builder.Entity<Permission>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<Permission>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<Permission>().HasIndex(p => p.Name).IsUnique();
+
+            builder.Entity<RolePermission>().HasKey(c => c.Id);
+            builder.Entity<RolePermission>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<RolePermission>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
 
             DisableCascadingDelete(builder);
         }

@@ -203,6 +203,7 @@ namespace Api_Portar_Paciente.Handlers
 
         private static void RegisterCoreServices(IServiceCollection services)
         {
+            // CRUD Services (siguen patrón ServiceBase)
             services.AddScoped<IFrequentQuestionsService, FrequentQuestionsService>();
             services.AddScoped<ICardioTVService, CardioTVService>();
             services.AddScoped<IQuestionService, QuestionService>();
@@ -211,10 +212,17 @@ namespace Api_Portar_Paciente.Handlers
             services.AddScoped<IDocTypeService, DocTypeService>();
             services.AddScoped<IDataPolicyAcceptanceService, DataPolicyAcceptanceService>();
             services.AddScoped<IPatientService, PatientService>();
+
+            // RequestType and State Services
             services.AddScoped<IRequestTypeService, RequestTypeService>();
             services.AddScoped<IStateService, StateService>();
+
+            // Request and HistoryRequest Services
             services.AddScoped<IRequestService, RequestService>();
             services.AddScoped<IHistoryRequestService, HistoryRequestService>();
+
+            // Authorization Service
+            services.AddScoped<CC.Domain.Interfaces.Services.IAuthorizationService, CC.Aplication.Services.AuthorizationService>();
 
             // Telemetry Service
             services.AddScoped<ITelemetryService, TelemetryService>();
