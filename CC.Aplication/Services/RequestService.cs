@@ -55,10 +55,11 @@ namespace CC.Aplication.Services
 
             if (initialState == null)
             {
-                Logger.LogError("Estado inicial 'Creado' no encontrado en la base de datos");
-                throw new InvalidOperationException("Estado inicial 'Creado' no encontrado. Ejecute el seed de la base de datos.");
+                Logger.LogError("Estado inicial 'Recibida' no encontrado en la base de datos");
+                throw new InvalidOperationException("Estado inicial 'Recibida' no encontrado. Ejecute el seed de la base de datos.");
             }
 
+            var now = DateTime.UtcNow;
             var request = new Request
             {
                 Id = Guid.NewGuid(),
@@ -68,7 +69,8 @@ namespace CC.Aplication.Services
                 Description = dto.Description,
                 StateId = initialState.Id,
                 AssignedUserId = null,
-                DateCreated = DateTime.UtcNow
+                DateCreated = now,
+                LastUpdateDate = now
             };
 
             var createdRequest = await _requestRepo.AddAsync(request);
@@ -82,7 +84,7 @@ namespace CC.Aplication.Services
                 NewStateId = null,
                 UserId = null,
                 Changes = dto.Description,
-                DateCreated = DateTime.UtcNow
+                DateCreated = now
             };
 
             await _historyRepo.AddAsync(history);
@@ -90,10 +92,9 @@ namespace CC.Aplication.Services
 
             var fullRequest = await _requestRepo.FindByAlternateKeyAsync(
                 r => r.Id == createdRequest.Id,
-                includeProperties: "DocType,RequestType,State");
+                includeProperties: "DocType,RequestType,State,AssignedUser");
 
-            var result = _mapper.Map<RequestDto>(fullRequest);
-            return result;
+            return _mapper.Map<RequestDto>(fullRequest);
         }
 
         public async Task<IEnumerable<RequestDto>> GetByPatientAsync(
@@ -114,7 +115,7 @@ namespace CC.Aplication.Services
                           && r.DateCreated >= from
                           && r.DateCreated <= to,
                 orderBy: q => q.OrderByDescending(r => r.DateCreated),
-                includeProperties: "DocType,RequestType,State"
+                includeProperties: "DocType,RequestType,State,AssignedUser"
             );
 
             Logger.LogInformation("Encontradas {Count} solicitudes para el paciente", results.Count());
@@ -128,6 +129,7 @@ namespace CC.Aplication.Services
             Logger.LogInformation("Consultando solicitudes con filtros: StateId={StateId}, RequestTypeId={RequestTypeId}",
                 query.StateId, query.RequestTypeId);
 
+            // Construir filtro dinámico
             Expression<Func<Request, bool>> filter = r => true;
 
             if (!string.IsNullOrWhiteSpace(query.DocTypeCode))

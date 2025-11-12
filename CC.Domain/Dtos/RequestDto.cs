@@ -64,5 +64,10 @@ namespace CC.Domain.Dtos
         /// Nombre del usuario asignado
         /// </summary>
         public string? AssignedUserName { get; set; }
+
+        /// <summary>
+        /// Fecha de la última actualización (del historial más reciente)
+        /// </summary>
+        public DateTime? LastUpdateDate { get; set; }
     }
 }

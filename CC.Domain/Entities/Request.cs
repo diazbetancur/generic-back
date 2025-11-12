@@ -38,5 +38,10 @@
         /// </summary>
         public Guid? AssignedUserId { get; set; }
         public virtual User AssignedUser { get; set; }
+
+        /// <summary>
+        /// Fecha de la última actualización de la solicitud
+        /// </summary>
+        public DateTime LastUpdateDate { get; set; }
     }
 }

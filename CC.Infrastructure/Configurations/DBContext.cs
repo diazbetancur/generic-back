@@ -174,10 +174,12 @@ namespace CC.Infrastructure.Configurations
             builder.Entity<Request>().HasKey(c => c.Id);
             builder.Entity<Request>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<Request>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<Request>().Property(e => e.LastUpdateDate).HasDefaultValueSql("GETUTCDATE()");
             builder.Entity<Request>().HasIndex(r => new { r.DocTypeId, r.DocNumber, r.DateCreated });
             builder.Entity<Request>().HasIndex(r => r.StateId);
             builder.Entity<Request>().HasIndex(r => r.RequestTypeId);
             builder.Entity<Request>().HasIndex(r => r.AssignedUserId);
+            builder.Entity<Request>().HasIndex(r => r.LastUpdateDate);
 
             builder.Entity<HistoryRequest>().HasKey(c => c.Id);
             builder.Entity<HistoryRequest>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
