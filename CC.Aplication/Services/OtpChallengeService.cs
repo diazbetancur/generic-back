@@ -90,7 +90,7 @@ namespace CC.Aplication.Services
                 {
                     DocTypeId = docType.Id,
                     DocNumber = request.DocNumber,
-                    UserId = $"{request.DocTypeCode}-{request.DocNumber}",
+                    UserId = $"{request.DocTypeCode}-{request.DocNumber}-{otp}",
                     CodeHash = codeHash,
                     ExpiresAt = now.AddSeconds(ttlSeconds),
                     ClientIp = null,

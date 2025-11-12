@@ -11,9 +11,9 @@
 
         public async Task SeedAsync()
         {
-            await _dbContext.Database.EnsureCreatedAsync();
             await EnsureDocType();
             await EnsureGeneralSettings();
+            await EnsureStates();
         }
 
         private async Task EnsureDocType()
@@ -102,10 +102,63 @@
                     DateCreated = DateTime.Now,
                     Id = Guid.NewGuid(),
                     Key = "MensajeSinContacto",
-                    Value = "No se encontraron medios de contacto registrados. Por favor comuníquese al WhatsApp +57 300 123 4567 para actualizar sus datos.",
+                    Value = "No se encontraron medios de contacto registrados. Por favor comuníquese al WhatsApp +57 300 123 45 67 para actualizar sus datos.",
                     Description = "Mensaje mostrado cuando el usuario no tiene email ni celular registrado",
                 }
                 );
+
+                await _dbContext.SaveChangesAsync();
+            }
+        }
+
+        private async Task EnsureStates()
+        {
+            if (!_dbContext.States.Any())
+            {
+                _dbContext.States.Add(new Domain.Entities.State
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Recibida",
+                    HexColor = "#2196F3",
+                    IsDeleted = false,
+                    DateCreated = DateTime.UtcNow
+                });
+
+                _dbContext.States.Add(new Domain.Entities.State
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "En Proceso",
+                    HexColor = "#FF9800",
+                    IsDeleted = false,
+                    DateCreated = DateTime.UtcNow
+                });
+
+                _dbContext.States.Add(new Domain.Entities.State
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Completada",
+                    HexColor = "#4CAF50",
+                    IsDeleted = false,
+                    DateCreated = DateTime.UtcNow
+                });
+
+                _dbContext.States.Add(new Domain.Entities.State
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Requiere Informacion",
+                    HexColor = "#9E9E9E",
+                    IsDeleted = false,
+                    DateCreated = DateTime.UtcNow
+                });
+
+                _dbContext.States.Add(new Domain.Entities.State
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Cancelada",
+                    HexColor = "#F44336",
+                    IsDeleted = false,
+                    DateCreated = DateTime.UtcNow
+                });
 
                 await _dbContext.SaveChangesAsync();
             }

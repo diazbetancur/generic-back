@@ -22,6 +22,22 @@ namespace CC.Domain
 
             CreateMap<DataPolicyAcceptance, DataPolicyAcceptanceDto>().ReverseMap()
                 .ForMember(dest => dest.DocType, opt => opt.Ignore());
+            CreateMap<RequestType, RequestTypeDto>().ReverseMap();
+            CreateMap<State, StateDto>().ReverseMap();
+
+            CreateMap<Request, RequestDto>()
+                .ReverseMap()
+                .ForMember(dest => dest.DocType, opt => opt.Ignore())
+                .ForMember(dest => dest.RequestType, opt => opt.Ignore())
+                .ForMember(dest => dest.State, opt => opt.Ignore())
+                .ForMember(dest => dest.AssignedUser, opt => opt.Ignore());
+
+            CreateMap<HistoryRequest, HistoryRequestDto>()
+                .ReverseMap()
+                .ForMember(dest => dest.Request, opt => opt.Ignore())
+                .ForMember(dest => dest.OldState, opt => opt.Ignore())
+                .ForMember(dest => dest.NewState, opt => opt.Ignore())
+                .ForMember(dest => dest.User, opt => opt.Ignore());
 
             // Mapeo de TelemetryLog para telemetría de la aplicación
             CreateMap<TelemetryLog, TelemetryDto>().ReverseMap();

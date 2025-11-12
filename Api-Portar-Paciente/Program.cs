@@ -10,19 +10,21 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
 using System.Text;
+using CC.Infrastructure.Configurations;
+using Microsoft.EntityFrameworkCore;
 
 // ===== CONFIGURAR SERILOG ANTES DE CONSTRUIR EL HOST =====
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(new ConfigurationBuilder()
-        .SetBasePath(Directory.GetCurrentDirectory())
-        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-        .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
-        .Build())
-    .Enrich.FromLogContext()
-    .Enrich.WithMachineName()
-    .Enrich.WithEnvironmentName()
-    .Enrich.WithProperty("Application", "PortalPacientesAPI")
-    .CreateLogger();
+ .ReadFrom.Configuration(new ConfigurationBuilder()
+ .SetBasePath(Directory.GetCurrentDirectory())
+ .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+ .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+ .Build())
+ .Enrich.FromLogContext()
+ .Enrich.WithMachineName()
+ .Enrich.WithEnvironmentName()
+ .Enrich.WithProperty("Application", "PortalPacientesAPI")
+ .CreateLogger();
 
 try
 {
@@ -41,20 +43,20 @@ try
     Log.Information("Cargar configuraciones especificas del ambiente");
 
     builder.Configuration
-        .SetBasePath(Directory.GetCurrentDirectory())
-        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-        .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
-        .AddEnvironmentVariables();
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
 
     // ===== CORS CONFIGURATION =====
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll", policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        });
+     {
+        policy.AllowAnyOrigin()
+     .AllowAnyMethod()
+     .AllowAnyHeader();
+    });
     });
 
     // Add services to the container.
@@ -81,7 +83,7 @@ try
     {
         if (jwtSecret.Length < 32)
         {
-            Log.Warning("JWT Secret es demasiado corto. Se recomienda mínimo 32 caracteres.");
+            Log.Warning("JWT Secret es demasiado corto. Se recomienda mínimo32 caracteres.");
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
@@ -114,9 +116,9 @@ try
 
     // Custom DI registrations (DbContext, Repositories, Services, Logging, Auditing)
     Api_Portar_Paciente.Handlers.DependencyInyectionHandler.DepencyInyectionConfig(
-        builder.Services,
-        builder.Configuration,
-        environment);
+    builder.Services,
+    builder.Configuration,
+    environment);
 
     // ===== CONFIGURAR SWAGGER CON DOCUMENTACIÓN XML =====
     var enableSwagger = builder.Configuration.GetValue<bool>("Features:EnableSwagger");
@@ -130,7 +132,7 @@ try
                 Title = "Portal Pacientes API - Cardioinfantil",
                 Version = "v1.0",
                 Description = "API REST para el Portal de Pacientes de la Fundación Cardioinfantil. " +
-                             "Proporciona endpoints para autenticación, gestión de contenido y servicios al paciente.",
+     "Proporciona endpoints para autenticación, gestión de contenido y servicios al paciente.",
                 Contact = new OpenApiContact
                 {
                     Name = "Equipo de Desarrollo Cardioinfantil",
@@ -140,11 +142,11 @@ try
 
             // Incluir comentarios XML de todos los proyectos
             var xmlFiles = new[]
-            {
-                $"{Assembly.GetExecutingAssembly().GetName().Name}.xml",
-                "CC.Domain.xml",
-                "CC.Aplication.xml"
-            };
+     {
+ $"{Assembly.GetExecutingAssembly().GetName().Name}.xml",
+ "CC.Domain.xml",
+ "CC.Aplication.xml"
+        };
 
             foreach (var xmlFile in xmlFiles)
             {
@@ -164,8 +166,8 @@ try
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header usando el esquema Bearer. \r\n\r\n" +
-                             "Ingresa 'Bearer' [espacio] y luego tu token en el campo de texto.\r\n\r\n" +
-                             "Ejemplo: 'Bearer 12345abcdef'",
+     "Ingresa 'Bearer' [espacio] y luego tu token en el campo de texto.\r\n\r\n" +
+     "Ejemplo: 'Bearer12345abcdef'",
                 Name = "Authorization",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.ApiKey,
@@ -173,22 +175,22 @@ try
             });
 
             c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        },
-                        Scheme = "oauth2",
-                        Name = "Bearer",
-                        In = ParameterLocation.Header
-                    },
-                    new List<string>()
-                }
-            });
+        {
+ {
+ new OpenApiSecurityScheme
+ {
+ Reference = new OpenApiReference
+ {
+ Type = ReferenceType.SecurityScheme,
+ Id = "Bearer"
+ },
+ Scheme = "oauth2",
+ Name = "Bearer",
+ In = ParameterLocation.Header
+ },
+ new List<string>()
+ }
+        });
         });
 
         Log.Information("Swagger configurado y habilitado");
@@ -199,21 +201,23 @@ try
 
     var app = builder.Build();
 
-    // ===== INICIALIZAR BASE DE DATOS (SEED) =====
+    // ===== APLICAR MIGRACIONES Y SEED =====
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
         try
         {
-            var seeder = services.GetRequiredService<CC.Infrastructure.Configurations.SeedDB>();
+            var db = services.GetRequiredService<DBContext>();
+            await db.Database.MigrateAsync();
+
+            var seeder = services.GetRequiredService<SeedDB>();
             await seeder.SeedAsync();
-            Log.Information("✅ Base de datos inicializada correctamente (Seed completado)");
+            Log.Information("✅ Migraciones aplicadas e inicialización de datos completada");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "❌ Error al inicializar la base de datos (Seed)");
+            Log.Error(ex, "❌ Error al aplicar migraciones/seed al iniciar la aplicación");
             // No lanzar excepción para permitir que la aplicación inicie
-            // pero registrar el error para investigación
         }
     }
 
@@ -221,12 +225,12 @@ try
     app.UseSerilogRequestLogging(options =>
     {
         options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
-        {
-            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
-            diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-            diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
-            diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
-        };
+     {
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+        diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
+        diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
+    };
     });
 
     // Configure the HTTP request pipeline.
@@ -287,8 +291,8 @@ try
     Log.Information("📚 Swagger habilitado: {SwaggerEnabled}", enableSwagger);
     Log.Information("🚦 Rate Limiting habilitado: {RateLimitingEnabled}", true);
     Log.Information("🧹 Log Cleanup: Retención de {RetentionDays} días, limpieza a las {CleanupHour}:00",
-        builder.Configuration.GetValue<int>("Logging:RetentionDays", 30),
-        builder.Configuration.GetValue<int>("Logging:CleanupHour", 3));
+    builder.Configuration.GetValue<int>("Logging:RetentionDays", 30),
+    builder.Configuration.GetValue<int>("Logging:CleanupHour", 3));
 
     await app.RunAsync();
 }
@@ -325,10 +329,10 @@ static void ConfigureHealthChecks(IServiceCollection services, IConfiguration co
     {
         services.AddHttpClient("EmailServiceHealthCheck");
         healthChecksBuilder.AddTypeActivatedCheck<ExternalServiceHealthCheck>(
-            "email-service",
-            HealthStatus.Degraded,
-            new[] { ExternalServicesTag },
-            args: new object[] { emailServiceUrl, "Email Service" });
+        "email-service",
+        HealthStatus.Degraded,
+        new[] { ExternalServicesTag },
+        args: new object[] { emailServiceUrl, "Email Service" });
     }
 
     var notificationServiceUrl = configuration["ExternalServices:NotificationService:BaseUrl"];
@@ -336,33 +340,10 @@ static void ConfigureHealthChecks(IServiceCollection services, IConfiguration co
     {
         services.AddHttpClient("NotificationServiceHealthCheck");
         healthChecksBuilder.AddTypeActivatedCheck<ExternalServiceHealthCheck>(
-            "notification-service",
-            HealthStatus.Degraded,
-            new[] { ExternalServicesTag },
-            args: new object[] { notificationServiceUrl, "Notification Service" });
-    }
-
-    // ===== HEALTH CHECKS UI =====
-    var enableHealthUI = configuration.GetValue<bool>("HealthChecks:UIEnabled", false);
-    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
-
-    if (enableHealthUI && (environment.Equals("Development", StringComparison.OrdinalIgnoreCase) ||
-                           environment.Equals("qa", StringComparison.OrdinalIgnoreCase)))
-    {
-        services.AddHealthChecksUI(options =>
-        {
-            options.SetEvaluationTimeInSeconds(30);
-            options.MaximumHistoryEntriesPerEndpoint(50);
-            options.AddHealthCheckEndpoint($"Portal Pacientes API - {environment}", "/health");
-        })
-        .AddInMemoryStorage(); // Usar almacenamiento en memoria para UI
-
-        Log.Information("Health Checks UI habilitado para ambiente: {Environment}", environment);
-    }
-    else
-    {
-        Log.Information("Health Checks UI deshabilitado. Environment: {Environment}, UIEnabled: {UIEnabled}",
-            environment, enableHealthUI);
+        "notification-service",
+        HealthStatus.Degraded,
+        new[] { ExternalServicesTag },
+        args: new object[] { notificationServiceUrl, "Notification Service" });
     }
 }
 
@@ -379,32 +360,11 @@ static void ConfigureHealthCheckEndpoints(WebApplication app)
         Predicate = _ => true,
         ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
         ResultStatusCodes =
-        {
-            [HealthStatus.Healthy] = StatusCodes.Status200OK,
-            [HealthStatus.Degraded] = StatusCodes.Status200OK,
-            [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
-        }
-    });
-
-    // Endpoint específico para aplicación
-    app.MapHealthChecks("/health/application", new HealthCheckOptions
-    {
-        Predicate = check => check.Tags.Contains(ApplicationTag),
-        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-    });
-
-    // Endpoint específico para configuración
-    app.MapHealthChecks("/health/configuration", new HealthCheckOptions
-    {
-        Predicate = check => check.Tags.Contains(ConfigurationTag),
-        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-    });
-
-    // Endpoint específico para servicios externos
-    app.MapHealthChecks("/health/external-services", new HealthCheckOptions
-    {
-        Predicate = check => check.Tags.Contains(ExternalServicesTag),
-        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+ {
+ [HealthStatus.Healthy] = StatusCodes.Status200OK,
+ [HealthStatus.Degraded] = StatusCodes.Status200OK,
+ [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+ }
     });
 
     // Endpoint simple para load balancers (solo healthy/unhealthy)
@@ -413,21 +373,4 @@ static void ConfigureHealthCheckEndpoints(WebApplication app)
         Predicate = check => check.Tags.Contains(ApplicationTag) || check.Tags.Contains(ConfigurationTag),
         AllowCachingResponses = false
     });
-
-    // ===== HEALTH CHECKS UI ENDPOINTS =====
-    var configuration = app.Services.GetRequiredService<IConfiguration>();
-    var enableHealthUI = configuration.GetValue<bool>("HealthChecks:UIEnabled", false);
-    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
-
-    if (enableHealthUI && (environment.Equals("Development", StringComparison.OrdinalIgnoreCase) ||
-                           environment.Equals("qa", StringComparison.OrdinalIgnoreCase)))
-    {
-        app.MapHealthChecksUI(options =>
-        {
-            options.UIPath = "/health-ui";
-            options.ApiPath = "/health-api";
-        });
-
-        Log.Information("Health Checks UI disponible en /health-ui");
-    }
 }

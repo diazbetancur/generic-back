@@ -72,51 +72,62 @@ namespace CC.Infrastructure.Configurations
         /// <summary>
         /// Aceptacion de politicas de datos
         /// </summary>
-        /// <param name="builder"></param>
         public DbSet<DataPolicyAcceptance> DataPolicyAcceptances { get; set; }
+
+        /// <summary>
+        /// Tipos de solicitud
+        /// </summary>
+        public DbSet<RequestType> RequestTypes { get; set; }
+
+        /// <summary>
+        /// Estados de solicitud
+        /// </summary>
+        public DbSet<State> States { get; set; }
+
+        /// <summary>
+        /// Solicitudes de pacientes
+        /// </summary>
+        public DbSet<Request> Requests { get; set; }
+
+        /// <summary>
+        /// Historial de cambios de solicitudes
+        /// </summary>
+        public DbSet<HistoryRequest> HistoryRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            // FrequentQuestions Configuration
             builder.Entity<FrequentQuestions>().HasKey(c => c.Id);
             builder.Entity<FrequentQuestions>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<FrequentQuestions>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
 
-            // CardioTV Configuration
             builder.Entity<CardioTV>().HasKey(c => c.Id);
             builder.Entity<CardioTV>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<CardioTV>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
 
-            // AuditLog Configuration
             builder.Entity<AuditLog>().HasKey(c => c.Id);
             builder.Entity<AuditLog>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<AuditLog>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
 
-            // Question Configuration
             builder.Entity<Question>().HasKey(c => c.Id);
             builder.Entity<Question>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<Question>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
 
-            // ResponseQuestion Configuration
             builder.Entity<ResponseQuestion>().HasKey(c => c.Id);
             builder.Entity<ResponseQuestion>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<ResponseQuestion>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
 
-            // DocType Configuration
             builder.Entity<DocType>().HasKey(c => c.Id);
             builder.Entity<DocType>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<DocType>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
             builder.Entity<DocType>().HasIndex(d => d.Code).IsUnique();
 
-            // OtpChallenge Configuration
             builder.Entity<OtpChallenge>().HasKey(c => c.Id);
             builder.Entity<OtpChallenge>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<OtpChallenge>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
             builder.Entity<OtpChallenge>().HasIndex(o => new { o.UserId, o.ExpiresAt });
 
-            // Sessions Configuration
             builder.Entity<Sessions>().HasKey(c => c.Id);
             builder.Entity<Sessions>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<Sessions>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
@@ -125,13 +136,11 @@ namespace CC.Infrastructure.Configurations
             builder.Entity<Sessions>().HasIndex(s => s.LastSeenAt);
             builder.Entity<Sessions>().HasIndex(s => s.IsActive);
 
-            // GeneralSettings Configuration
             builder.Entity<GeneralSettings>().HasKey(c => c.Id);
             builder.Entity<GeneralSettings>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<GeneralSettings>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
             builder.Entity<GeneralSettings>().HasIndex(g => g.Key).IsUnique();
 
-            // LoginAttempt Configuration
             builder.Entity<LoginAttempt>().HasKey(c => c.Id);
             builder.Entity<LoginAttempt>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<LoginAttempt>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
@@ -139,7 +148,6 @@ namespace CC.Infrastructure.Configurations
             builder.Entity<LoginAttempt>().HasIndex(l => new { l.Success, l.DateCreated });
             builder.Entity<LoginAttempt>().HasIndex(l => new { l.DocNumber, l.DateCreated });
 
-            // TelemetryLog Configuration
             builder.Entity<TelemetryLog>().HasKey(c => c.Id);
             builder.Entity<TelemetryLog>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<TelemetryLog>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
@@ -149,10 +157,34 @@ namespace CC.Infrastructure.Configurations
             builder.Entity<TelemetryLog>().HasIndex(t => new { t.ActivityType, t.ActivityDate });
             builder.Entity<TelemetryLog>().HasIndex(t => new { t.TelemetryType, t.ActivityDate });
 
-            // DataPolicyAcceptance Configuration
             builder.Entity<DataPolicyAcceptance>().HasKey(c => c.Id);
             builder.Entity<DataPolicyAcceptance>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
             builder.Entity<DataPolicyAcceptance>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+
+            builder.Entity<RequestType>().HasKey(c => c.Id);
+            builder.Entity<RequestType>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<RequestType>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<RequestType>().HasIndex(r => r.Name);
+
+            builder.Entity<State>().HasKey(c => c.Id);
+            builder.Entity<State>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<State>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<State>().HasIndex(s => s.Name);
+
+            builder.Entity<Request>().HasKey(c => c.Id);
+            builder.Entity<Request>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<Request>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<Request>().HasIndex(r => new { r.DocTypeId, r.DocNumber, r.DateCreated });
+            builder.Entity<Request>().HasIndex(r => r.StateId);
+            builder.Entity<Request>().HasIndex(r => r.RequestTypeId);
+            builder.Entity<Request>().HasIndex(r => r.AssignedUserId);
+
+            builder.Entity<HistoryRequest>().HasKey(c => c.Id);
+            builder.Entity<HistoryRequest>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<HistoryRequest>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<HistoryRequest>().HasIndex(h => h.RequestId);
+            builder.Entity<HistoryRequest>().HasIndex(h => h.DateCreated);
+
             DisableCascadingDelete(builder);
         }
 

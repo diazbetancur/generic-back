@@ -3,6 +3,7 @@ using CC.Domain.Interfaces.Repositories;
 using CC.Domain.Interfaces.Services;
 using CC.Infrastructure.Configurations;
 using CC.Infrastructure.External;
+using CC.Infrastructure.External.Email;
 using CC.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -154,7 +155,7 @@ namespace Api_Portar_Paciente.Handlers
                 options.TokenExpirationMinutes = 55;
             });
 
-            // Email options
+            // Email Graph options
             services.Configure<CC.Infrastructure.External.Email.EmailServiceOptions>(options =>
             {
                 options.ServiceName = "GraphEmailService";
@@ -169,11 +170,23 @@ namespace Api_Portar_Paciente.Handlers
                 options.GraphBaseUrl = "https://graph.microsoft.com/v1.0";
                 options.Scopes = new[] { "https://graph.microsoft.com/.default" };
             });
+
+            // Email SMTP options
+            services.Configure<SmtpEmailOptions>(options =>
+            {
+                options.Host = configuration["Email:Host"] ?? string.Empty;
+                options.Port = configuration.GetValue<int>("Email:Port", 587);
+                options.UseSsl = configuration.GetValue<bool>("Email:UseSsl", true);
+                options.TimeoutSeconds = configuration.GetValue<int>("Email:TimeoutSeconds", 30);
+                options.Username = configuration["Email:Username"] ?? string.Empty;
+                options.Password = configuration["Email:Password"] ?? string.Empty;
+                options.FromEmail = configuration["Email:FromEmail"] ?? options.Username;
+                options.FromName = configuration["Email:FromName"] ?? "Portal Pacientes";
+            });
         }
 
         private static void RegisterCoreServices(IServiceCollection services)
         {
-            // CRUD Services (siguen patrón ServiceBase)
             services.AddScoped<IFrequentQuestionsService, FrequentQuestionsService>();
             services.AddScoped<ICardioTVService, CardioTVService>();
             services.AddScoped<IQuestionService, QuestionService>();
@@ -182,6 +195,10 @@ namespace Api_Portar_Paciente.Handlers
             services.AddScoped<IDocTypeService, DocTypeService>();
             services.AddScoped<IDataPolicyAcceptanceService, DataPolicyAcceptanceService>();
             services.AddScoped<IPatientService, PatientService>();
+            services.AddScoped<IRequestTypeService, RequestTypeService>();
+            services.AddScoped<IStateService, StateService>();
+            services.AddScoped<IRequestService, RequestService>();
+            services.AddScoped<IHistoryRequestService, HistoryRequestService>();
 
             // Telemetry Service
             services.AddScoped<ITelemetryService, TelemetryService>();
@@ -212,9 +229,19 @@ namespace Api_Portar_Paciente.Handlers
             services.AddHttpClient<ILiwaSmsService, LiwaSmsService>();
             services.AddHttpClient<IGraphEmailService, GraphEmailService>();
 
-            // Envoltorios simples (legacy) para envío
+            // Selección dinámica de implementación de IEmailSender
+            var emailMode = configuration["Email:Mode"]?.Trim().ToLowerInvariant();
+            if (emailMode == "smtp")
+            {
+                services.AddScoped<IEmailSender, SmtpEmailSender>();
+            }
+            else
+            {
+                services.AddScoped<IEmailSender, EmailSender>(); // Graph por defecto
+            }
+
+            // Envoltorios simples (legacy) para envío SMS
             services.AddScoped<ISmsSender, SmsSender>();
-            services.AddScoped<IEmailSender, EmailSender>();
         }
 
         private static void RegisterMockOverrides(IServiceCollection services, IConfiguration configuration)
@@ -240,6 +267,10 @@ namespace Api_Portar_Paciente.Handlers
             services.AddScoped<ICardioTVRepository, CardioTVRepository>();
             services.AddScoped<IQuestionRepository, QuestionRepository>();
             services.AddScoped<IResponseQuestionRepository, ResponseQuestionRepository>();
+            services.AddScoped<IRequestTypeRepository, RequestTypeRepository>();
+            services.AddScoped<IStateRepository, StateRepository>();
+            services.AddScoped<IRequestRepository, RequestRepository>();
+            services.AddScoped<IHistoryRequestRepository, HistoryRequestRepository>();
 
             // Telemetry Repository
             services.AddScoped<ITelemetryRepository, TelemetryRepository>();
