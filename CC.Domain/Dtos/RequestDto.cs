@@ -53,7 +53,7 @@ namespace CC.Domain.Dtos
         /// <summary>
         /// Color del estado en hexadecimal
         /// </summary>
-        public string StateColor { get; set; }
+        public string StateHexColor { get; set; }
 
         /// <summary>
         /// ID del usuario asignado (null si no está asignado)

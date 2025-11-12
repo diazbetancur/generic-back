@@ -135,6 +135,22 @@ namespace Api_Portar_Paciente.Handlers
                 options.AllowInvalidCerts = configuration.GetValue<bool>("ExternalServices:XeroViewer:AllowInvalidCerts", false);
             });
 
+            // NilRead options
+            services.Configure<CC.Infrastructure.External.NilRead.NilReadOptions>(options =>
+            {
+                options.ServiceName = "NilReadService";
+                options.BaseUrl = configuration["ExternalServices:NilRead:BaseUrl"] ?? "http://10.3.0.79:8086";
+                options.TimeoutSeconds = configuration.GetValue<int>("ExternalServices:NilRead:TimeoutSeconds", 30);
+                options.ApiKey = configuration["ExternalServices:NilRead:ApiKey"] ?? "FundacionC4rd1o";
+                options.HealthEndpoint = "/health";
+                options.ExamsEndpoint = "/patients/{patient_id}/exams";
+                options.ReportEndpoint = "/reports/{dateFolder}/{filename}";
+                options.ViewerLinkEndpoint = "/exams/{accession}/viewer-link";
+                options.DefaultLimit = configuration.GetValue<int>("ExternalServices:NilRead:DefaultLimit", 10);
+                options.MaxLimit = configuration.GetValue<int>("ExternalServices:NilRead:MaxLimit", 50);
+                options.AllowInvalidCerts = configuration.GetValue<bool>("ExternalServices:NilRead:AllowInvalidCerts", false);
+            });
+
             // Mock Xero options (opcional)
             services.Configure<MockXeroOptions>(configuration.GetSection("Mocks:Xero"));
 
@@ -214,7 +230,7 @@ namespace Api_Portar_Paciente.Handlers
         private static void RegisterExternalIntegrations(IServiceCollection services, IConfiguration configuration)
         {
             var allowInvalidCerts = configuration.GetValue<bool>("ExternalsAPI:AllowInvalidCerts") ||
-                                   configuration.GetValue<bool>("ApiSettings:AllowInvalidCerts");
+                                    configuration.GetValue<bool>("ApiSettings:AllowInvalidCerts");
 
             services.AddHttpClient<IExternalPatientService, ExternalPatientService>()
                 .ConfigurePrimaryHttpMessageHandler(() => HttpClientConfiguration.CreateHandler(allowInvalidCerts));
@@ -222,6 +238,10 @@ namespace Api_Portar_Paciente.Handlers
             var xeroAllowInvalidCerts = configuration.GetValue<bool>("ExternalServices:XeroViewer:AllowInvalidCerts");
             services.AddHttpClient<IXeroViewerService, XeroViewerService>()
                 .ConfigurePrimaryHttpMessageHandler(() => HttpClientConfiguration.CreateHandler(xeroAllowInvalidCerts));
+
+            var nilReadAllowInvalidCerts = configuration.GetValue<bool>("ExternalServices:NilRead:AllowInvalidCerts");
+            services.AddHttpClient<INilReadService, NilReadService>()
+                .ConfigurePrimaryHttpMessageHandler(() => HttpClientConfiguration.CreateHandler(nilReadAllowInvalidCerts));
         }
 
         private static void RegisterMessagingServices(IServiceCollection services, IConfiguration configuration)

@@ -49,12 +49,10 @@ namespace CC.Infrastructure.External.Email
             catch (SmtpException ex)
             {
                 _logger.LogError(ex, "SMTP: Error enviando email a {Dest}. StatusCode={StatusCode}", MaskEmail(destination), ex.StatusCode);
-                throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "SMTP: Excepción enviando email a {Dest}", MaskEmail(destination));
-                throw;
             }
         }
 
