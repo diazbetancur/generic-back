@@ -41,7 +41,7 @@ namespace Api_Portar_Paciente.Controllers
             {
                 var telemetryDto = new TelemetryDto
                 {
-                    UserDocType = request.UserDocType,
+                    UserDocType = request.UserDocType + "-" + request.UserDocNumber,
                     UserDocNumber = request.UserDocNumber,
                     DocumentType = request.DocumentType,
                     ActivityType = request.ActivityType,

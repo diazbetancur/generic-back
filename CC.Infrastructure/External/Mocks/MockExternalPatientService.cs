@@ -16,21 +16,21 @@ namespace CC.Infrastructure.External.Mocks
         {
             new ExternalPatientContact(
                 Mobile: "3122305410",
-                Email: "juan.perez@email.com",
+                Email: "diazbetancur@gmail.com",
                 FullName: "Juan Pérez García",
                 History: "HC123456",
                 Address: "Calle Falsa 123"
             ),
             new ExternalPatientContact(
                 Mobile: "3122305410",
-                Email: "maria.rodriguez@email.com",
+                Email: "diazbetancur@gmail.com",
                 FullName: "María Rodríguez López",
                 History: "HC789012",
                 Address: "Calle Falsa 123"
             ),
             new ExternalPatientContact(
-                Mobile: "3205551234",
-                Email: "carlos.gomez@email.com",
+                Mobile: "3122305410",
+                Email: "diazbetancur@gmail.com",
                 FullName: "Carlos Gómez Hernández",
                 History: "HC345678",
                 Address: "Calle Falsa 123"

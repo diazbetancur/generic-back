@@ -38,7 +38,6 @@ namespace CC.Aplication.Services
                     return null;
                 }
 
-                // Alinear ambos IDs para cumplir FK
                 entityDto.DocTypeId = docType.Id;
 
                 var exists = await _dataPolicyAcceptanceRepo.AnyAsync(x => x.DocTypeId == entityDto.DocTypeId && x.DocNumber == docNumber)

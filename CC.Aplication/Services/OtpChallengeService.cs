@@ -90,7 +90,7 @@ namespace CC.Aplication.Services
                 {
                     DocTypeId = docType.Id,
                     DocNumber = request.DocNumber,
-                    UserId = $"{request.DocTypeCode}-{request.DocNumber}-{otp}",
+                    UserId = $"{request.DocTypeCode}-{request.DocNumber}",
                     CodeHash = codeHash,
                     ExpiresAt = now.AddSeconds(ttlSeconds),
                     ClientIp = null,
@@ -107,21 +107,68 @@ namespace CC.Aplication.Services
                 var maskedPhone = MaskingHelper.MaskPhone(contact.Mobile);
                 var maskedEmail = MaskingHelper.MaskEmail(contact.Email);
 
-                var template = await SettingsHelper.GetStringSettingAsync(
+                // Template para SMS (texto plano)
+                var smsTemplate = await SettingsHelper.GetStringSettingAsync(
                     _settingsRepo,
                     key: "OtpMessageTemplate",
-                    defaultValue: "Se ha generado el PIN: {OTP} para el acceso Portal Paciente LaCardio. Gracias");
-                var message = template.Replace("{OTP}", otp, StringComparison.OrdinalIgnoreCase);
+                    defaultValue: "Su código de verificación es: {OTP}. Válido por {MINUTES} minutos. Portal Pacientes - Fundación Cardioinfantil.");
+
+                // Template para Email (HTML)
+                var emailTemplate = await SettingsHelper.GetStringSettingAsync(
+                    _settingsRepo,
+                    key: "OtpEmailTemplate",
+                    defaultValue: "Su código de verificación es: {OTP}");
+
+                var ttlMinutes = (ttlSeconds / 60).ToString();
+                var smsMessage = smsTemplate
+                    .Replace("{OTP}", otp, StringComparison.OrdinalIgnoreCase)
+                    .Replace("{MINUTES}", ttlMinutes, StringComparison.OrdinalIgnoreCase);
+
+                var emailMessage = emailTemplate
+                    .Replace("{OTP}", otp, StringComparison.OrdinalIgnoreCase)
+                    .Replace("{MINUTES}", ttlMinutes, StringComparison.OrdinalIgnoreCase);
+
+                // Envío paralelo no bloqueante de SMS y Email
+                var sendTasks = new List<Task>();
 
                 if (!string.IsNullOrWhiteSpace(contact.Mobile))
                 {
-                    await _smsSender.SendAsync(contact.Mobile!, message, ct).ConfigureAwait(false);
-                    challenge.DeliveredToSms = true;
+                    sendTasks.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _smsSender.SendAsync(contact.Mobile!, smsMessage, ct).ConfigureAwait(false);
+                            challenge.DeliveredToSms = true;
+                            Logger.LogInformation("SMS enviado exitosamente a {Phone}", maskedPhone);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogWarning(ex, "Error al enviar SMS a {Phone}, continuando...", maskedPhone);
+                        }
+                    }, ct));
                 }
+
                 if (!string.IsNullOrWhiteSpace(contact.Email))
                 {
-                    await _emailSender.SendAsync(contact.Email!, "Código de verificación", message, ct).ConfigureAwait(false);
-                    challenge.DeliveredToEmail = true;
+                    sendTasks.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _emailSender.SendAsync(contact.Email!, "Código de verificación - Portal Pacientes", emailMessage, ct).ConfigureAwait(false);
+                            challenge.DeliveredToEmail = true;
+                            Logger.LogInformation("Email enviado exitosamente a {Email}", maskedEmail);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogWarning(ex, "Error al enviar Email a {Email}, continuando...", maskedEmail);
+                        }
+                    }, ct));
+                }
+
+                // Esperar a que ambos terminen (éxito o fallo)
+                if (sendTasks.Any())
+                {
+                    await Task.WhenAll(sendTasks).ConfigureAwait(false);
                 }
 
                 await _otpRepo.UpdateAsync(challenge).ConfigureAwait(false);
@@ -198,26 +245,76 @@ namespace CC.Aplication.Services
                     "Nuevo OTP challenge creado con ID: {NewChallengeId} reemplazando {OldChallengeId}",
                     newChallenge.Id, request.ChallengeId);
 
-                var resendTemplate = await SettingsHelper.GetStringSettingAsync(
+                // Template para SMS (texto plano)
+                var smsTemplate = await SettingsHelper.GetStringSettingAsync(
                     _settingsRepo,
                     key: "OtpMessageTemplate",
-                    defaultValue: "Se ha generado el PIN: {OTP} para el acceso Portal Paciente LaCardio. Gracias");
-                var message = resendTemplate.Replace("{OTP}", otp, StringComparison.OrdinalIgnoreCase);
+                    defaultValue: "Su código de verificación es: {OTP}. Válido por {MINUTES} minutos. Portal Pacientes - Fundación Cardioinfantil.");
+
+                // Template para Email (HTML)
+                var emailTemplate = await SettingsHelper.GetStringSettingAsync(
+                    _settingsRepo,
+                    key: "OtpEmailTemplate",
+                    defaultValue: "Su código de verificación es: {OTP}");
+
+                var ttlMinutes = (ttlSeconds / 60).ToString();
+                var smsMessage = smsTemplate
+                    .Replace("{OTP}", otp, StringComparison.OrdinalIgnoreCase)
+                    .Replace("{MINUTES}", ttlMinutes, StringComparison.OrdinalIgnoreCase);
+
+                var emailMessage = emailTemplate
+                    .Replace("{OTP}", otp, StringComparison.OrdinalIgnoreCase)
+                    .Replace("{MINUTES}", ttlMinutes, StringComparison.OrdinalIgnoreCase);
+
+                var maskedPhone = MaskingHelper.MaskPhone(contact.Mobile);
+                var maskedEmail = MaskingHelper.MaskEmail(contact.Email);
+
+                // Envío paralelo no bloqueante de SMS y Email
+                var sendTasks = new List<Task>();
 
                 if (!string.IsNullOrWhiteSpace(contact.Mobile))
                 {
-                    await _smsSender.SendAsync(contact.Mobile!, message, ct).ConfigureAwait(false);
-                    newChallenge.DeliveredToSms = true;
+                    sendTasks.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _smsSender.SendAsync(contact.Mobile!, smsMessage, ct).ConfigureAwait(false);
+                            newChallenge.DeliveredToSms = true;
+                            Logger.LogInformation("SMS reenviado exitosamente a {Phone}", maskedPhone);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogWarning(ex, "Error al reenviar SMS a {Phone}, continuando...", maskedPhone);
+                        }
+                    }, ct));
                 }
+
                 if (!string.IsNullOrWhiteSpace(contact.Email))
                 {
-                    await _emailSender.SendAsync(contact.Email!, "Código de verificación", message, ct).ConfigureAwait(false);
-                    newChallenge.DeliveredToEmail = true;
+                    sendTasks.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _emailSender.SendAsync(contact.Email!, "Código de verificación - Portal Pacientes", emailMessage, ct).ConfigureAwait(false);
+                            newChallenge.DeliveredToEmail = true;
+                            Logger.LogInformation("Email reenviado exitosamente a {Email}", maskedEmail);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogWarning(ex, "Error al reenviar Email a {Email}, continuando...", maskedEmail);
+                        }
+                    }, ct));
+                }
+
+                // Esperar a que ambos terminen (éxito o fallo)
+                if (sendTasks.Any())
+                {
+                    await Task.WhenAll(sendTasks).ConfigureAwait(false);
                 }
 
                 await _otpRepo.UpdateAsync(newChallenge).ConfigureAwait(false);
 
-                return new ResendOtpResponse(newChallenge.Id, MaskingHelper.MaskPhone(contact.Mobile), MaskingHelper.MaskEmail(contact.Email));
+                return new ResendOtpResponse(newChallenge.Id, maskedPhone, maskedEmail);
             }
             catch (Exception ex)
             {
