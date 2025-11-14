@@ -1,14 +1,21 @@
+using CC.Aplication.Helpers;
 using CC.Domain.Dtos;
 using CC.Domain.Entities;
+using CC.Domain.Interfaces.External;
 using CC.Domain.Interfaces.Repositories;
+
+using CC.Domain.Interfaces.Repositories;
+
 using CC.Domain.Interfaces.Services;
-using CC.Aplication.Helpers;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.Extensions.Configuration;
-using CC.Domain.Interfaces.Repositories;
+using static CC.Domain.Constants.PermissionConstants;
+using static System.Net.WebRequestMethods;
 
 namespace CC.Aplication.Services
 {
@@ -23,12 +30,16 @@ namespace CC.Aplication.Services
         private readonly IGeneralSettingsRepository _settingsRepo;
         private readonly IConfiguration _config;
         private readonly ILoginAttemptRepository _loginAttemptRepo;
+        private readonly IEmailSender _emailSender;
+        private readonly IExternalPatientService _externalPatient;
 
         public AuthVerifyService(
             IOtpChallengeRepository otpRepo,
             IDocTypeRepository docTypeRepo,
             ISessionsRepository sessionRepo,
             IGeneralSettingsRepository settingsRepo,
+            IEmailSender emailSender,
+            IExternalPatientService externalPatient,
             IConfiguration config,
             ILoginAttemptRepository loginAttemptRepo)
         {
@@ -38,6 +49,8 @@ namespace CC.Aplication.Services
             _settingsRepo = settingsRepo;
             _config = config;
             _loginAttemptRepo = loginAttemptRepo;
+            _emailSender = emailSender;
+            _externalPatient = externalPatient;
         }
 
         public async Task<VerifyOtpResponse> VerifyAsync(VerifyOtpRequest request, CancellationToken ct = default)
@@ -97,6 +110,8 @@ namespace CC.Aplication.Services
                 IsActive = true
             };
             await _sessionRepo.AddAsync(session).ConfigureAwait(false);
+
+            await sendEmailLogin(request.DocTypeCode, request.DocNumber);
 
             await SaveAttempt(request, success: true, reason: "Success");
 
@@ -182,6 +197,34 @@ namespace CC.Aplication.Services
                 await _loginAttemptRepo.AddAsync(attempt).ConfigureAwait(false);
             }
             catch { }
+        }
+
+        private async Task sendEmailLogin(string docType, string docNumber, CancellationToken ct = default)
+        {
+            try
+            {
+                var contact = await _externalPatient.GetContactAsync(docType, docNumber, ct).ConfigureAwait(false);
+                if (contact == null || string.IsNullOrEmpty(contact.Email))
+                {
+                    return;
+                }
+                var emailTemplate = await SettingsHelper.GetStringSettingAsync(
+                _settingsRepo,
+                key: "ConfirmLoginEmailTemplate",
+                defaultValue: "Ingreso al Portal Paciente Exitoso.");
+
+                var formatted = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                emailTemplate = emailTemplate
+                    .Replace("{DATETIME}", formatted, StringComparison.OrdinalIgnoreCase);
+                _ = Task.Run(async () =>
+                {
+                    await _emailSender.SendAsync(contact.Email!, "Confirmación login - Portal Paciente - LaCardio", emailTemplate, CancellationToken.None).ConfigureAwait(false);
+                });
+            }
+            catch
+            {
+                return;
+            }
         }
     }
 }

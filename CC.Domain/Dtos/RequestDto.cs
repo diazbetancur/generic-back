@@ -69,5 +69,7 @@ namespace CC.Domain.Dtos
         /// Fecha de la última actualización (del historial más reciente)
         /// </summary>
         public DateTime? LastUpdateDate { get; set; }
+
+        public bool RequestUpdated { get; set; }
     }
 }

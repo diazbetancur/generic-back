@@ -137,8 +137,8 @@ namespace CC.Aplication.Services
                     {
                         try
                         {
-                            await _smsSender.SendAsync(contact.Mobile!, smsMessage, ct).ConfigureAwait(false);
                             challenge.DeliveredToSms = true;
+                            await _smsSender.SendAsync(contact.Mobile!, smsMessage, ct).ConfigureAwait(false);
                             Logger.LogInformation("SMS enviado exitosamente a {Phone}", maskedPhone);
                         }
                         catch (Exception ex)
@@ -154,8 +154,8 @@ namespace CC.Aplication.Services
                     {
                         try
                         {
-                            await _emailSender.SendAsync(contact.Email!, "Código de verificación - Portal Pacientes", emailMessage, ct).ConfigureAwait(false);
                             challenge.DeliveredToEmail = true;
+                            await _emailSender.SendAsync(contact.Email, "Código de verificación - Portal Paciente", emailMessage, ct).ConfigureAwait(false);
                             Logger.LogInformation("Email enviado exitosamente a {Email}", maskedEmail);
                         }
                         catch (Exception ex)
@@ -168,7 +168,7 @@ namespace CC.Aplication.Services
                 // Esperar a que ambos terminen (éxito o fallo)
                 if (sendTasks.Any())
                 {
-                    await Task.WhenAll(sendTasks).ConfigureAwait(false);
+                    _ = Task.WhenAll(sendTasks).ConfigureAwait(false);
                 }
 
                 await _otpRepo.UpdateAsync(challenge).ConfigureAwait(false);

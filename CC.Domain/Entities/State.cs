@@ -5,5 +5,6 @@
         public string Name { get; set; }
         public string HexColor { get; set; }
         public bool IsDeleted { get; set; }
+        public bool IsSystem { get; set; } = false;
     }
 }

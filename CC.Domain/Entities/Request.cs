@@ -9,6 +9,7 @@
         /// Tipo de documento del paciente
         /// </summary>
         public Guid DocTypeId { get; set; }
+
         public virtual DocType DocType { get; set; }
 
         /// <summary>
@@ -20,12 +21,14 @@
         /// Estado actual de la solicitud (siempre tiene valor, inicial: "Creado")
         /// </summary>
         public Guid StateId { get; set; }
+
         public virtual State State { get; set; }
 
         /// <summary>
         /// Tipo de solicitud
         /// </summary>
         public Guid RequestTypeId { get; set; }
+
         public virtual RequestType RequestType { get; set; }
 
         /// <summary>
@@ -37,11 +40,14 @@
         /// Usuario asignado para atender la solicitud (null hasta que se asigne)
         /// </summary>
         public Guid? AssignedUserId { get; set; }
+
         public virtual User AssignedUser { get; set; }
 
         /// <summary>
         /// Fecha de la última actualización de la solicitud
         /// </summary>
         public DateTime LastUpdateDate { get; set; }
+
+        public bool RequestUpdated { get; set; } = false;
     }
 }

@@ -25,7 +25,6 @@ namespace CC.Infrastructure.Configurations
             await EnsureGeneralSettings();
             await EnsureStates();
             await EnsurePermissions();
-            await EnsureRolesWithPermissions();
             await EnsureAdmin();
         }
 
@@ -314,6 +313,91 @@ namespace CC.Infrastructure.Configurations
                 }
                 );
 
+                _dbContext.GeneralSettings.Add(new Domain.Entities.GeneralSettings
+                {
+                    DateCreated = DateTime.Now,
+                    Id = Guid.NewGuid(),
+                    Key = "ConfirmLoginEmailTemplate",
+                    Value = @"
+<!DOCTYPE html>
+<html lang='es'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Ingreso Exitoso</title>
+</head>
+<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>
+    <table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>
+        <tr>
+            <td align='center'>
+                <table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);'>
+
+                    <!-- Header -->
+                    <tr>
+                        <td style='background: linear-gradient(135deg, #0066cc 0%, #004c99 100%); padding: 30px 40px; text-align: center;'>
+                            <h1 style='color: #ffffff; margin: 0; font-size: 24px; font-weight: bold;'>Portal Paciente</h1>
+                            <p style='color: #e6f2ff; margin: 5px 0 0 0; font-size: 14px;'>Fundación Cardioinfantil - LaCardio</p>
+                        </td>
+                    </tr>
+
+                    <!-- Contenido -->
+                    <tr>
+                        <td style='padding: 40px;'>
+
+                            <p style='color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;'>
+                                Cordial saludo,
+                            </p>
+
+                            <p style='color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;'>
+                                Le informamos que su ingreso al <strong>Portal de Paciente</strong> de la Fundación Cardioinfantil - LaCardio se realizó de manera <strong>exitosa</strong>.
+                            </p>
+
+                            <table width='100%' cellpadding='0' cellspacing='0' style='margin: 0 0 30px 0;'>
+                                <tr>
+                                    <td style='background-color: #f8f9fa; border-radius: 8px; padding: 25px; border: 1px solid #e0e0e0;'>
+                                        <p style='color: #666666; font-size: 14px; margin: 0 0 5px 0; text-transform: uppercase; letter-spacing: 1px;'>
+                                            Fecha y hora del acceso:
+                                        </p>
+
+                                        <p style='color: #0066cc; font-size: 20px; font-weight: bold; margin: 10px 0 0 0;'>
+                                            {DATETIME}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style='color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 10px 0;'>
+                                Si no reconoce este inicio de sesión, por favor comuníquese con nosotros de inmediato.
+                            </p>
+
+                            <p style='color: #0066cc; font-size: 16px; line-height: 1.6; margin: 0; font-weight: 600;'>
+                                Fundación Cardioinfantil - LaCardio
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style='background-color: #f8f9fa; padding: 20px 40px; border-top: 1px solid #e0e0e0;'>
+                            <p style='color: #999999; font-size: 12px; line-height: 1.6; margin: 0 0 10px 0; text-align: center;'>
+                                Este es un mensaje automático, por favor no responda a este correo.
+                            </p>
+                            <p style='color: #999999; font-size: 12px; line-height: 1.6; margin: 0; text-align: center;'>
+                                Si no realizó este ingreso, por favor repórtelo inmediatamente.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>",
+                    Description = "Template HTML del mensaje de confirmación de ingreso exitoso al Portal Paciente",
+                });
+
                 await _dbContext.SaveChangesAsync();
             }
         }
@@ -328,7 +412,18 @@ namespace CC.Infrastructure.Configurations
                     Name = "Recibida",
                     HexColor = "#2196F3",
                     IsDeleted = false,
-                    DateCreated = DateTime.UtcNow
+                    DateCreated = DateTime.UtcNow,
+                    IsSystem = true
+                });
+
+                _dbContext.States.Add(new Domain.Entities.State
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Anulada por tiempo",
+                    HexColor = "#F44336",
+                    IsDeleted = false,
+                    DateCreated = DateTime.UtcNow,
+                    IsSystem = true
                 });
 
                 _dbContext.States.Add(new Domain.Entities.State
