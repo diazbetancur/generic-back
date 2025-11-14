@@ -14,6 +14,7 @@ namespace Api_Portar_Paciente.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TelemetryController : ControllerBase
     {
         private readonly ITelemetryService _telemetryService;

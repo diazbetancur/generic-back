@@ -1,3 +1,4 @@
+using CC.Domain.Dtos;
 using CC.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -427,34 +428,5 @@ namespace Api_Portar_Paciente.Controllers.Admin
                 return StatusCode(500, new { error = "Error al obtener roles del usuario" });
             }
         }
-    }
-
-    /// <summary>
-    /// DTO para crear usuario
-    /// </summary>
-    public class CreateUserDto
-    {
-        public required string UserName { get; set; }
-        public required string Email { get; set; }
-        public string? PhoneNumber { get; set; }
-        public required string Password { get; set; }
-    }
-
-    /// <summary>
-    /// DTO para actualizar usuario
-    /// </summary>
-    public class UpdateUserDto
-    {
-        public string? Email { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? NewPassword { get; set; }
-    }
-
-    /// <summary>
-    /// DTO para asignar roles
-    /// </summary>
-    public class AssignRolesDto
-    {
-        public required List<string> RoleNames { get; set; }
     }
 }

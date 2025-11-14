@@ -14,7 +14,7 @@ namespace Api_Portar_Paciente.Controllers.Admin
     /// </summary>
     [ApiController]
     [Route("api/admin/[controller]")]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize]
     public class RolesController : ControllerBase
     {
         private readonly RoleManager<Role> _roleManager;

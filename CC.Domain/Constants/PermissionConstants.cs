@@ -79,6 +79,40 @@ namespace CC.Domain.Constants
         }
 
         /// <summary>
+        /// Módulo de Contenido (Content Management)
+        /// </summary>
+        public static class Content
+        {
+            public const string Module = "Content";
+            public const string View = "Content.View";
+            public const string Create = "Content.Create";
+            public const string Update = "Content.Update";
+            public const string Delete = "Content.Delete";
+            public const string Publish = "Content.Publish";
+        }
+
+        /// <summary>
+        /// Módulo de Estados (States)
+        /// </summary>
+        public static class States
+        {
+            public const string Module = "States";
+            public const string View = "States.View";
+            public const string Manage = "States.Manage";
+        }
+
+        /// <summary>
+        /// Módulo de Telemetría (Telemetry)
+        /// </summary>
+        public static class Telemetry
+        {
+            public const string Module = "Telemetry";
+            public const string View = "Telemetry.View";
+            public const string ViewAll = "Telemetry.ViewAll";
+            public const string Export = "Telemetry.Export";
+        }
+
+        /// <summary>
         /// Nombres de políticas de autorización
         /// </summary>
         public static class Policies
@@ -119,6 +153,20 @@ namespace CC.Domain.Constants
             public const string CanViewConfig = "CanViewConfig";
             public const string CanUpdateConfig = "CanUpdateConfig";
             public const string CanViewAuditLog = "CanViewAuditLog";
+
+            // Políticas de Content
+            public const string CanViewContent = "CanViewContent";
+            public const string CanManageContent = "CanManageContent";
+            public const string CanPublishContent = "CanPublishContent";
+
+            // Políticas de States
+            public const string CanViewStates = "CanViewStates";
+            public const string CanManageStates = "CanManageStates";
+
+            // Políticas de Telemetry
+            public const string CanViewTelemetry = "CanViewTelemetry";
+            public const string CanViewAllTelemetry = "CanViewAllTelemetry";
+            public const string CanExportTelemetry = "CanExportTelemetry";
         }
 
         /// <summary>
@@ -140,7 +188,13 @@ namespace CC.Domain.Constants
                 // NilRead
                 NilRead.ViewExams, NilRead.ViewReports, NilRead.ViewImages,
                 // Configuration
-                Configuration.View, Configuration.Update, Configuration.ViewAuditLog
+                Configuration.View, Configuration.Update, Configuration.ViewAuditLog,
+                // Content
+                Content.View, Content.Create, Content.Update, Content.Delete, Content.Publish,
+                // States
+                States.View, States.Manage,
+                // Telemetry
+                Telemetry.View, Telemetry.ViewAll, Telemetry.Export
             };
         }
 
@@ -159,6 +213,9 @@ namespace CC.Domain.Constants
                 "Reports" => new[] { Reports.View, Reports.Export, Reports.ViewAll },
                 "NilRead" => new[] { NilRead.ViewExams, NilRead.ViewReports, NilRead.ViewImages },
                 "Configuration" => new[] { Configuration.View, Configuration.Update, Configuration.ViewAuditLog },
+                "Content" => new[] { Content.View, Content.Create, Content.Update, Content.Delete, Content.Publish },
+                "States" => new[] { States.View, States.Manage },
+                "Telemetry" => new[] { Telemetry.View, Telemetry.ViewAll, Telemetry.Export },
                 _ => Array.Empty<string>()
             };
         }

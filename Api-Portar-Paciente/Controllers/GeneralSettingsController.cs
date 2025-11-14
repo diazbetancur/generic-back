@@ -11,6 +11,7 @@ namespace Api_Portar_Paciente.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class GeneralSettingsController : ControllerBase
     {
         private readonly IGeneralSettingsService _generalSettingService;
@@ -49,9 +50,7 @@ namespace Api_Portar_Paciente.Controllers
 
             var allowedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                "Public:TermsUrl",
-                "Public:PrivacyVersion",
-                "Public:SupportContact"
+                "Public:MessageDataPolicyAcceptances",
             };
 
             if (!allowedKeys.Contains(key))

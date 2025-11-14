@@ -48,6 +48,19 @@ namespace CC.Infrastructure.Authorization
                 return;
             }
 
+            // ? SuperAdmin tiene acceso total sin validación
+            var roles = user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+            _logger.LogInformation("Roles: {Roles}", string.Join(", ", roles));
+            
+            if (roles.Contains("SuperAdmin"))
+            {
+                _logger.LogDebug(
+                    "Usuario SuperAdmin tiene acceso automático al permiso {Permission}",
+                    requirement.Permission);
+                context.Succeed(requirement);
+                return;
+            }
+
             // Obtener ID del usuario del claim
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))

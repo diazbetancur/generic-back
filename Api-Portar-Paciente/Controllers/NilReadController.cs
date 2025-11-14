@@ -1,5 +1,6 @@
 using CC.Domain.Contracts;
 using CC.Domain.Interfaces.External;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api_Portar_Paciente.Controllers
@@ -9,6 +10,7 @@ namespace Api_Portar_Paciente.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class NilReadController : ControllerBase
     {
         private readonly INilReadService _nilReadService;

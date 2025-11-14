@@ -7,6 +7,7 @@ namespace Api_Portar_Paciente.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class DocTypeController : ControllerBase
     {
         private readonly IDocTypeService _docTypeService;

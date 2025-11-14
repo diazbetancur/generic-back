@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using CC.Infrastructure.Configurations;
 using Microsoft.EntityFrameworkCore;
@@ -78,47 +79,10 @@ try
     builder.Services.AddInMemoryRateLimiting();
     builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
-    // JWT Authentication
-    var jwtSecret = builder.Configuration["Authentication:JwtSecret"];
-    if (!string.IsNullOrWhiteSpace(jwtSecret))
-    {
-        if (jwtSecret.Length < 32)
-        {
-            Log.Warning("JWT Secret es demasiado corto. Se recomienda mínimo32 caracteres.");
-        }
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
-        builder.Services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = key,
-                ValidateIssuer = true,
-                ValidIssuer = builder.Configuration["Authentication:Issuer"],
-                ValidateAudience = true,
-                ValidAudience = builder.Configuration["Authentication:Audience"],
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
-            };
-        });
-
-        Log.Information("Autenticación JWT configurada correctamente");
-    }
-    else
-    {
-        Log.Warning("JWT Secret no configurado. La autenticación JWT no estará disponible.");
-    }
-
-    // ===== IDENTITY CONFIGURATION =====
+    // ===== IDENTITY CONFIGURATION (primero, pero sin esquema de autenticación por defecto) =====
     builder.Services.AddIdentity<CC.Domain.Entities.User, CC.Domain.Entities.Role>(options =>
     {
-        // Password settings (puedes ajustarlas según tus necesidades)
+        // Password settings
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
         options.Password.RequireUppercase = true;
@@ -136,7 +100,78 @@ try
     .AddEntityFrameworkStores<DBContext>()
     .AddDefaultTokenProviders();
 
+    // ✅ IMPORTANTE: Configurar Identity para NO usar cookies (esto es una API REST)
+    builder.Services.ConfigureApplicationCookie(options =>
+    {
+        options.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        };
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        };
+    });
+
     Log.Information("Identity configurado correctamente");
+
+    // ===== JWT AUTHENTICATION (después de Identity para tomar precedencia) =====
+    var jwtSecret = builder.Configuration["Authentication:JwtSecret"];
+    if (!string.IsNullOrWhiteSpace(jwtSecret))
+    {
+        if (jwtSecret.Length < 32)
+        {
+            Log.Warning("JWT Secret es demasiado corto. Se recomienda mínimo 32 caracteres.");
+        }
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+        
+        // ✅ CRÍTICO: Configurar JWT como esquema por defecto
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = key,
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration["Authentication:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["Authentication:Audience"],
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            // ✅ Logging para debugging
+            options.Events = new JwtBearerEvents
+            {
+                OnAuthenticationFailed = context =>
+                {
+                    Log.Warning("JWT Authentication failed: {Error}", context.Exception.Message);
+                    return Task.CompletedTask;
+                },
+                OnTokenValidated = context =>
+                {
+                    var userId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    Log.Debug("JWT Token validado exitosamente para usuario: {UserId}", userId);
+                    return Task.CompletedTask;
+                }
+            };
+        });
+
+        Log.Information("Autenticación JWT configurada correctamente como esquema por defecto");
+    }
+    else
+    {
+        Log.Warning("JWT Secret no configurado. La autenticación JWT no estará disponible.");
+    }
 
     // ===== AUTHORIZATION POLICIES CONFIGURATION =====
     builder.Services.AddHttpContextAccessor();

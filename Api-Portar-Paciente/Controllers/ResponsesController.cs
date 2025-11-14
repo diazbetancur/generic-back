@@ -2,6 +2,7 @@
 using CC.Domain.Dtos;
 using CC.Domain.Entities;
 using CC.Domain.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,9 +10,11 @@ namespace Api_Portar_Paciente.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ResponsesController : ControllerBase
     {
         private readonly IResponseQuestionService _responseQuestionService;
+
         public ResponsesController(IResponseQuestionService responseQuestionService)
         {
             _responseQuestionService = responseQuestionService;
@@ -25,7 +28,7 @@ namespace Api_Portar_Paciente.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllAsync(Guid idQuestion)
         {
-            return Ok(await _responseQuestionService.GetAllAsync(x=> x.QuestionId == idQuestion).ConfigureAwait(false));
+            return Ok(await _responseQuestionService.GetAllAsync(x => x.QuestionId == idQuestion).ConfigureAwait(false));
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using CC.Aplication.Services;
 using CC.Domain.Dtos;
 using CC.Domain.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,10 +9,12 @@ namespace Api_Portar_Paciente.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class QuestionController : ControllerBase
     {
         private readonly IQuestionService _questionService;
         private readonly IResponseQuestionService _responseQuestionService;
+
         public QuestionController(IResponseQuestionService responseQuestionService, IQuestionService questionService)
         {
             _responseQuestionService = responseQuestionService;
@@ -65,7 +68,7 @@ namespace Api_Portar_Paciente.Controllers
                 return BadRequest();
 
             question.DateCreated = response.DateCreated;
-            await _questionService.UpdateAsync(question).ConfigureAwait(false);        
+            await _questionService.UpdateAsync(question).ConfigureAwait(false);
 
             return Ok(question);
         }

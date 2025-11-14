@@ -87,7 +87,7 @@ namespace CC.Infrastructure.Configurations
                     FirstName = "Administrador",
                     LastName = "Sistema",
                     IsDeleted = false,
-                    PhoneNumber = "+573001234567",
+                    PhoneNumber = "3001234567",
                     LockoutEnabled = false,
                     DocumentNumber = "ADMIN001",
                     DocTypeId = _dbContext.DocTypes.First(d => d.Code == "CC").Id
@@ -185,7 +185,7 @@ namespace CC.Infrastructure.Configurations
                     DateCreated = DateTime.Now,
                     Id = Guid.NewGuid(),
                     Key = "MessageDataPolicyAcceptances",
-                    Value = "30",
+                    Value = "Mensaje para mostrar ",
                     Description = "Pendiente el mensaje que va ir aqui",
                 }
 );
@@ -413,18 +413,27 @@ namespace CC.Infrastructure.Configurations
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Config.View", Module = "Configuration", Description = "Ver configuraciones", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Config.Update", Module = "Configuration", Description = "Actualizar configuraciones", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Config.ViewAuditLog", Module = "Configuration", Description = "Ver logs de auditoría", IsActive = true, DateCreated = DateTime.UtcNow },
+
+                    // Módulo Content (Gestión de Contenido)
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Content.View", Module = "Content", Description = "Ver contenido (CardioTV, FAQs, etc.)", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Content.Create", Module = "Content", Description = "Crear nuevo contenido", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Content.Update", Module = "Content", Description = "Editar contenido existente", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Content.Delete", Module = "Content", Description = "Eliminar contenido", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Content.Publish", Module = "Content", Description = "Publicar/despublicar contenido", IsActive = true, DateCreated = DateTime.UtcNow },
+
+                    // Módulo States (Gestión de Estados)
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "States.View", Module = "States", Description = "Ver estados de solicitudes", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "States.Manage", Module = "States", Description = "Crear/editar/eliminar estados", IsActive = true, DateCreated = DateTime.UtcNow },
+
+                    // Módulo Telemetry (Telemetría y Analytics)
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Telemetry.View", Module = "Telemetry", Description = "Ver telemetría propia", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Telemetry.ViewAll", Module = "Telemetry", Description = "Ver toda la telemetría del sistema", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Telemetry.Export", Module = "Telemetry", Description = "Exportar datos de telemetría", IsActive = true, DateCreated = DateTime.UtcNow },
                 };
 
                 await _dbContext.Permissions.AddRangeAsync(permissions);
                 await _dbContext.SaveChangesAsync();
             }
-        }
-
-        private async Task EnsureRolesWithPermissions()
-        {
-            // Este método se completará en la Fase 2 cuando implementemos el AuthorizationService
-            // Por ahora es un placeholder para que el seed funcione
-            await Task.CompletedTask;
         }
     }
 }

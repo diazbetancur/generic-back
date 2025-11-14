@@ -1,5 +1,6 @@
 using CC.Domain.Dtos;
 using CC.Domain.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api_Portar_Paciente.Controllers
@@ -9,6 +10,7 @@ namespace Api_Portar_Paciente.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class RequestController : ControllerBase
     {
         private readonly IRequestService _service;

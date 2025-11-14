@@ -20,8 +20,24 @@ namespace Api_Portar_Paciente.Configuration
             options.AddPolicy(PermissionConstants.Policies.PatientOnly, policy =>
                 policy.RequireClaim("UserType", "Patient"));
 
+            // ? MEJORADO: AdminOnly acepta múltiples roles administrativos
             options.AddPolicy(PermissionConstants.Policies.AdminOnly, policy =>
-                policy.RequireClaim("UserType", "Admin"));
+                policy.RequireAssertion(context =>
+                {
+                    // Opción A: Verificar claim UserType = Admin
+                    var userType = context.User.FindFirst("UserType")?.Value;
+                    if (userType == "Admin")
+                        return true;
+
+                    // Opción B: Verificar roles administrativos
+                    var roles = context.User.FindAll(System.Security.Claims.ClaimTypes.Role)
+                        .Select(c => c.Value)
+                        .ToList();
+
+                    // Lista de roles que son considerados "Admin"
+                    var adminRoles = new[] { "SuperAdmin", "Admin", "ContentManager", "SystemAdmin" };
+                    return roles.Any(r => adminRoles.Contains(r));
+                }));
 
             // ===== MÓDULO REQUESTS =====
 
@@ -97,6 +113,36 @@ namespace Api_Portar_Paciente.Configuration
 
             options.AddPolicy(PermissionConstants.Policies.CanViewAuditLog, policy =>
                 policy.AddRequirements(new PermissionRequirement(PermissionConstants.Configuration.ViewAuditLog)));
+
+            // ===== MÓDULO CONTENT =====
+
+            options.AddPolicy(PermissionConstants.Policies.CanViewContent, policy =>
+                policy.AddRequirements(new PermissionRequirement(PermissionConstants.Content.View)));
+
+            options.AddPolicy(PermissionConstants.Policies.CanManageContent, policy =>
+                policy.AddRequirements(new PermissionRequirement(PermissionConstants.Content.Create)));
+
+            options.AddPolicy(PermissionConstants.Policies.CanPublishContent, policy =>
+                policy.AddRequirements(new PermissionRequirement(PermissionConstants.Content.Publish)));
+
+            // ===== MÓDULO STATES =====
+
+            options.AddPolicy(PermissionConstants.Policies.CanViewStates, policy =>
+                policy.AddRequirements(new PermissionRequirement(PermissionConstants.States.View)));
+
+            options.AddPolicy(PermissionConstants.Policies.CanManageStates, policy =>
+                policy.AddRequirements(new PermissionRequirement(PermissionConstants.States.Manage)));
+
+            // ===== MÓDULO TELEMETRY =====
+
+            options.AddPolicy(PermissionConstants.Policies.CanViewTelemetry, policy =>
+                policy.AddRequirements(new PermissionRequirement(PermissionConstants.Telemetry.View)));
+
+            options.AddPolicy(PermissionConstants.Policies.CanViewAllTelemetry, policy =>
+                policy.AddRequirements(new PermissionRequirement(PermissionConstants.Telemetry.ViewAll)));
+
+            options.AddPolicy(PermissionConstants.Policies.CanExportTelemetry, policy =>
+                policy.AddRequirements(new PermissionRequirement(PermissionConstants.Telemetry.Export)));
         }
     }
 }
