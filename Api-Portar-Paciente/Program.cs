@@ -4,6 +4,7 @@ using AspNetCoreRateLimit;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -113,6 +114,41 @@ try
     {
         Log.Warning("JWT Secret no configurado. La autenticación JWT no estará disponible.");
     }
+
+    // ===== IDENTITY CONFIGURATION =====
+    builder.Services.AddIdentity<CC.Domain.Entities.User, CC.Domain.Entities.Role>(options =>
+    {
+        // Password settings (puedes ajustarlas según tus necesidades)
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequiredLength = 8;
+
+        // Lockout settings
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.AllowedForNewUsers = true;
+
+        // User settings
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddEntityFrameworkStores<DBContext>()
+    .AddDefaultTokenProviders();
+
+    Log.Information("Identity configurado correctamente");
+
+    // ===== AUTHORIZATION POLICIES CONFIGURATION =====
+    builder.Services.AddHttpContextAccessor();
+
+    // Registrar Authorization Handler (Scoped porque usa IAuthorizationService que es Scoped)
+    builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, 
+        CC.Infrastructure.Authorization.PermissionHandler>();
+
+    // Configurar políticas usando configuración centralizada
+    builder.Services.AddAuthorization(Api_Portar_Paciente.Configuration.AuthorizationPoliciesConfiguration.ConfigurePolicies);
+
+    Log.Information("Políticas de autorización configuradas: 27 políticas (PatientOnly, AdminOnly y 25 permisos granulares)");
 
     // Custom DI registrations (DbContext, Repositories, Services, Logging, Auditing)
     Api_Portar_Paciente.Handlers.DependencyInyectionHandler.DepencyInyectionConfig(

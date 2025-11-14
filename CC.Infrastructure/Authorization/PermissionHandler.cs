@@ -1,8 +1,8 @@
-using CC.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using AuthService = CC.Domain.Interfaces.Services.IAuthorizationService;
 
 namespace CC.Infrastructure.Authorization
 {
@@ -11,12 +11,12 @@ namespace CC.Infrastructure.Authorization
     /// </summary>
     public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
     {
-        private readonly IAuthorizationService _authService;
+        private readonly AuthService _authService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<PermissionHandler> _logger;
 
         public PermissionHandler(
-            IAuthorizationService authService,
+            AuthService authService,
             IHttpContextAccessor httpContextAccessor,
             ILogger<PermissionHandler> logger)
         {

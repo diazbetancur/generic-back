@@ -224,12 +224,16 @@ namespace Api_Portar_Paciente.Handlers
             // Authorization Service
             services.AddScoped<CC.Domain.Interfaces.Services.IAuthorizationService, CC.Aplication.Services.AuthorizationService>();
 
+            // JWT Token Generator
+            services.AddSingleton<CC.Aplication.Utils.JwtTokenGenerator>();
+
             // Telemetry Service
             services.AddScoped<ITelemetryService, TelemetryService>();
 
             // Auth Services
             services.AddScoped<IOtpChallengeService, OtpChallengeService>();
             services.AddScoped<IAuthVerifyService, AuthVerifyService>();
+            services.AddScoped<IPasswordResetService, PasswordResetService>();
 
             // Reports
             services.AddScoped<IReportsService, ReportsService>();
@@ -307,6 +311,7 @@ namespace Api_Portar_Paciente.Handlers
             // Permission Repositories
             services.AddScoped<IPermissionRepository, PermissionRepository>();
             services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
+            services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
 
             // Telemetry Repository
             services.AddScoped<ITelemetryRepository, TelemetryRepository>();
