@@ -87,7 +87,14 @@ namespace CC.Aplication.Services
                 DateCreated = now
             };
 
-            await _historyRepo.AddAsync(history);
+            try
+            {
+                await _historyRepo.AddAsync(history);
+            }
+            catch
+            {
+                Logger.LogError("Error al crear el historial inicial para la solicitud: {RequestId}", createdRequest.Id);
+            }
             Logger.LogInformation("Historial inicial creado para solicitud: {RequestId}", createdRequest.Id);
 
             var fullRequest = await _requestRepo.FindByAlternateKeyAsync(
@@ -109,8 +116,14 @@ namespace CC.Aplication.Services
             from ??= DateTime.UtcNow.AddYears(-1);
             to ??= DateTime.UtcNow.Date.AddDays(1).AddTicks(-1);
 
+            var doctype = await _docTypeRepo.FindByAlternateKeyAsync(
+                d => d.Code == docTypeCode && d.IsActive);
+
+            if (doctype == null)
+                return Enumerable.Empty<RequestDto>();
+
             var results = await _requestRepo.GetAllAsync(
-                filter: r => r.DocType.Code == docTypeCode
+                filter: r => r.DocTypeId == doctype.Id
                           && r.DocNumber == docNumber
                           && r.DateCreated >= from
                           && r.DateCreated <= to,

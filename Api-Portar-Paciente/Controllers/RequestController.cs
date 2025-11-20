@@ -15,11 +15,13 @@ namespace Api_Portar_Paciente.Controllers
     {
         private readonly IRequestService _service;
         private readonly ILogger<RequestController> _logger;
+        private readonly IHistoryRequestService _historyRequestService;
 
-        public RequestController(IRequestService service, ILogger<RequestController> logger)
+        public RequestController(IRequestService service, ILogger<RequestController> logger, IHistoryRequestService historyRequestService)
         {
             _service = service;
             _logger = logger;
+            _historyRequestService = historyRequestService;
         }
 
         /// <summary>
@@ -133,6 +135,12 @@ namespace Api_Portar_Paciente.Controllers
                 var result = await _service.FindByIdAsync(id);
                 if (result == null)
                     return NotFound(new { error = "Solicitud no encontrada" });
+
+                var history = await _historyRequestService.GetAllAsync(x => x.RequestId == result.Id);
+
+                result.LastObservation = history
+                    .OrderByDescending(h => h.DateCreated)
+                    .FirstOrDefault()?.Changes;
 
                 return Ok(result);
             }

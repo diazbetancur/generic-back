@@ -71,5 +71,10 @@ namespace CC.Domain.Dtos
         public DateTime? LastUpdateDate { get; set; }
 
         public bool RequestUpdated { get; set; }
+
+        /// <summary>
+        /// Ultima observacion
+        /// </summary>
+        public string? LastObservation { get; set; }
     }
 }
