@@ -52,7 +52,8 @@ namespace CC.Infrastructure.Configurations
                     {
                         Name = adminRoleName,
                         Description = "Rol con acceso completo al sistema",
-                        NormalizedName = adminRoleName.ToUpperInvariant()
+                        NormalizedName = adminRoleName.ToUpperInvariant(),
+                        isSystem = true
                     };
 
                     var roleResult = await _roleManager.CreateAsync(superAdminRole);

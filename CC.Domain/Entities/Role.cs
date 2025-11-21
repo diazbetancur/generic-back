@@ -10,6 +10,6 @@ namespace CC.Domain.Entities
         public string? Description { get; set; }
 
         public bool IsDeleted { get; set; }
-        public bool isSystem { get; set; }
+        public bool isSystem { get; set; } = false;
     }
 }

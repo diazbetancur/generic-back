@@ -29,6 +29,8 @@ namespace CC.Domain.Dtos
         /// Lista de permisos completos (para lectura)
         /// </summary>
         public List<PermissionDto>? Permissions { get; set; }
+
+        public bool isSystem { get; set; }
     }
 
     /// <summary>
@@ -39,7 +41,7 @@ namespace CC.Domain.Dtos
         /// <summary>
         /// Nombre del rol
         /// </summary>
-        public required string Name { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// Descripción del rol
@@ -55,6 +57,6 @@ namespace CC.Domain.Dtos
         /// <summary>
         /// Lista de IDs de permisos a asignar
         /// </summary>
-        public required List<Guid> PermissionIds { get; set; }
+        public List<Guid> PermissionIds { get; set; }
     }
 }
