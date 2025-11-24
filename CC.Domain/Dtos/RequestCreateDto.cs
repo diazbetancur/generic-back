@@ -25,4 +25,41 @@ namespace CC.Domain.Dtos
         /// </summary>
         public required string Description { get; set; }
     }
+
+    /// <summary>
+    /// DTO para actualizar la descripción de una solicitud (paciente)
+    /// </summary>
+    public class RequestUpdateDto
+    {
+        /// <summary>
+        /// Nueva descripción o información adicional de la solicitud
+        /// </summary>
+        public required string Description { get; set; }
+    }
+
+    /// <summary>
+    /// DTO para actualizar una solicitud por parte del asesor (admin)
+    /// </summary>
+    public class RequestUpdateByAdvisorDto
+    {
+        /// <summary>
+        /// Nuevo estado de la solicitud
+        /// </summary>
+        public required Guid StateId { get; set; }
+
+        /// <summary>
+        /// ID del usuario asesor que realiza la actualización
+        /// </summary>
+        public required Guid UserId { get; set; }
+
+        /// <summary>
+        /// Observaciones del asesor sobre el cambio de estado
+        /// </summary>
+        public required string Observations { get; set; }
+
+        /// <summary>
+        /// ID del usuario asignado para atender la solicitud (opcional)
+        /// </summary>
+        public Guid? AssignedUserId { get; set; }
+    }
 }

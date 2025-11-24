@@ -1,4 +1,5 @@
 using CC.Domain.Dtos;
+using CC.Domain.Entities;
 using CC.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -52,6 +53,118 @@ namespace Api_Portar_Paciente.Controllers
             {
                 _logger.LogError(ex, "Error inesperado al crear solicitud");
                 return StatusCode(500, new { error = "Error interno al crear la solicitud" });
+            }
+        }
+
+        /// <summary>
+        /// Actualiza la descripción de una solicitud (paciente)
+        /// </summary>
+        /// <param name="id">ID de la solicitud</param>
+        /// <param name="dto">Nueva descripción</param>
+        /// <returns>Solicitud actualizada</returns>
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(RequestDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Update(Guid id, [FromBody] RequestUpdateDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var request = await _service.FindByIdAsync(id);
+                if (request == null)
+                {
+                    _logger.LogWarning("Solicitud no encontrada: {RequestId}", id);
+                    return NotFound(new { error = "Solicitud no encontrada" });
+                }
+
+                request.Description = dto.Description;
+                request.LastUpdateDate = DateTime.UtcNow;
+
+                await _service.UpdateAsync(request);
+
+                var historyDto = new HistoryRequestDto
+                {
+                    Id = Guid.NewGuid(),
+                    RequestId = id,
+                    OldStateId = request.StateId,
+                    NewStateId = null,
+                    UserId = null,
+                    Changes = dto.Description,
+                    DateCreated = DateTime.UtcNow
+                };
+
+                await _historyRequestService.AddAsync(historyDto);
+
+                var result = await _service.FindByIdAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar solicitud {RequestId}", id);
+                return StatusCode(500, new { error = "Error interno al actualizar la solicitud" });
+            }
+        }
+
+        /// <summary>
+        /// Actualiza el estado de una solicitud (asesor/admin)
+        /// </summary>
+        /// <param name="id">ID de la solicitud</param>
+        /// <param name="dto">Datos de actualización por asesor</param>
+        /// <returns>Solicitud actualizada</returns>
+        [HttpPut("{id}/advisor")]
+        [ProducesResponseType(typeof(RequestDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateByAdvisor(Guid id, [FromBody] RequestUpdateByAdvisorDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var request = await _service.FindByIdAsync(id);
+                if (request == null)
+                {
+                    _logger.LogWarning("Solicitud no encontrada: {RequestId}", id);
+                    return NotFound(new { error = "Solicitud no encontrada" });
+                }
+
+                var oldStateId = request.StateId;
+
+                request.StateId = dto.StateId;
+                request.LastUpdateDate = DateTime.UtcNow;
+                request.RequestUpdated = true;
+
+                if (dto.AssignedUserId.HasValue)
+                    request.AssignedUserId = dto.AssignedUserId.Value;
+
+                await _service.UpdateAsync(request);
+
+                var historyDto = new HistoryRequestDto
+                {
+                    Id = Guid.NewGuid(),
+                    RequestId = id,
+                    OldStateId = oldStateId,
+                    NewStateId = dto.StateId,
+                    UserId = dto.UserId,
+                    Changes = dto.Observations,
+                    DateCreated = DateTime.UtcNow
+                };
+
+                await _historyRequestService.AddAsync(historyDto);
+
+                var result = await _service.FindByIdAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar solicitud por asesor {RequestId}", id);
+                return StatusCode(500, new { error = "Error interno al actualizar la solicitud" });
             }
         }
 
@@ -172,12 +285,5 @@ namespace Api_Portar_Paciente.Controllers
                 return StatusCode(500, new { error = "Error al consultar el historial" });
             }
         }
-
-        // TODO: Implementar PUT para actualización de estado (admin)
-        // [HttpPut("{id}/state")]
-        // public async Task<IActionResult> UpdateState(Guid id, [FromBody] UpdateStateDto dto)
-        // {
-        //     // Implementar cuando se necesite la funcionalidad de admin
-        // }
     }
 }
