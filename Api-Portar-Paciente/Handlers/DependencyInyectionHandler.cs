@@ -14,6 +14,9 @@ using System.Reflection;
 using ILogger = Serilog.ILogger;
 using CC.Aplication.Services;
 using CC.Infrastructure.External.Mocks;
+using CC.Infrastructure.External.Appointments;
+using CC.Infrastructure.External.ClinicalHistory;
+using CC.Infrastructure.External.Hospitalizations;
 
 namespace Api_Portar_Paciente.Handlers
 {
@@ -151,6 +154,54 @@ namespace Api_Portar_Paciente.Handlers
                 options.AllowInvalidCerts = configuration.GetValue<bool>("ExternalServices:NilRead:AllowInvalidCerts", false);
             });
 
+            // ===== NUEVAS APIs EXTERNAS =====
+
+            // Appointments API options
+            services.Configure<AppointmentsApiOptions>(options =>
+            {
+                options.ServiceName = "AppointmentsApi";
+                options.BaseUrl = configuration["ExternalServices:Appointments:BaseUrl"] ?? "http://10.3.0.79:5003";
+                options.TimeoutSeconds = configuration.GetValue<int>("ExternalServices:Appointments:TimeoutSeconds", 30);
+                options.ApiKey = configuration["ExternalServices:Appointments:ApiKey"] ?? "Ci74sAp1K3y2025";
+                options.HealthEndpoint = "/health";
+                options.PatientAppointmentsEndpoint = "/patients/{patient_id}/appointments";
+                options.PatientAppointmentsPaginatedEndpoint = "/patients/{patient_id}/appointments-with-pagination";
+                options.VersionEndpoint = "/version";
+                options.DefaultLimit = configuration.GetValue<int>("ExternalServices:Appointments:DefaultLimit", 50);
+                options.MaxLimit = configuration.GetValue<int>("ExternalServices:Appointments:MaxLimit", 200);
+            });
+
+            // Clinical History API options
+            services.Configure<ClinicalHistoryApiOptions>(options =>
+            {
+                options.ServiceName = "ClinicalHistoryApi";
+                options.BaseUrl = configuration["ExternalServices:ClinicalHistory:BaseUrl"] ?? "http://10.3.0.79:5002";
+                options.TimeoutSeconds = configuration.GetValue<int>("ExternalServices:ClinicalHistory:TimeoutSeconds", 30);
+                options.ApiKey = configuration["ExternalServices:ClinicalHistory:ApiKey"] ?? "C4rd1oInfa4ntil";
+                options.HealthEndpoint = "/health";
+                options.PatientEpisodesEndpoint = "/patients/{patient_id}/episodes";
+                options.ClinicalHistoryPdfEndpoint = "/patients/{patient_id}/episodes/{episode}/pdf";
+                options.IncapacityPdfEndpoint = "/patients/{patient_id}/episodes/{episode}/incapacity";
+                options.VersionEndpoint = "/version";
+                options.DefaultLimit = configuration.GetValue<int>("ExternalServices:ClinicalHistory:DefaultLimit", 20);
+                options.MaxLimit = configuration.GetValue<int>("ExternalServices:ClinicalHistory:MaxLimit", 100);
+            });
+
+            // Hospitalizations API options
+            services.Configure<HospitalizationsApiOptions>(options =>
+            {
+                options.ServiceName = "HospitalizationsApi";
+                options.BaseUrl = configuration["ExternalServices:Hospitalizations:BaseUrl"] ?? "http://10.3.0.79:5004";
+                options.TimeoutSeconds = configuration.GetValue<int>("ExternalServices:Hospitalizations:TimeoutSeconds", 30);
+                options.ApiKey = configuration["ExternalServices:Hospitalizations:ApiKey"] ?? "H0sp1t4liz4c10n2025";
+                options.HealthEndpoint = "/health";
+                options.PatientHospitalizationsEndpoint = "/patients/{patient_id}/hospitalizations";
+                options.PatientHospitalizationsPaginatedEndpoint = "/patients/{patient_id}/hospitalizations-with-pagination";
+                options.VersionEndpoint = "/version";
+                options.DefaultLimit = configuration.GetValue<int>("ExternalServices:Hospitalizations:DefaultLimit", 50);
+                options.MaxLimit = configuration.GetValue<int>("ExternalServices:Hospitalizations:MaxLimit", 200);
+            });
+
             // Mock Xero options (opcional)
             services.Configure<MockXeroOptions>(configuration.GetSection("Mocks:Xero"));
 
@@ -254,6 +305,17 @@ namespace Api_Portar_Paciente.Handlers
             var nilReadAllowInvalidCerts = configuration.GetValue<bool>("ExternalServices:NilRead:AllowInvalidCerts");
             services.AddHttpClient<INilReadService, NilReadService>()
                 .ConfigurePrimaryHttpMessageHandler(() => HttpClientConfiguration.CreateHandler(nilReadAllowInvalidCerts));
+
+            // ===== REGISTRAR NUEVAS APIs EXTERNAS =====
+            
+            // Appointments API
+            services.AddHttpClient<IAppointmentsApiService, AppointmentsApiService>();
+
+            // Clinical History API
+            services.AddHttpClient<IClinicalHistoryApiService, ClinicalHistoryApiService>();
+
+            // Hospitalizations API
+            services.AddHttpClient<IHospitalizationsApiService, HospitalizationsApiService>();
         }
 
         private static void RegisterMessagingServices(IServiceCollection services, IConfiguration configuration)

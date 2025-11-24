@@ -394,7 +394,57 @@ static void ConfigureHealthChecks(IServiceCollection services, IConfiguration co
     // Health Check de configuración
     healthChecksBuilder.AddCheck<ConfigurationHealthCheck>("configuration", HealthStatus.Degraded, new[] { ConfigurationTag });
 
-    // Health Checks de servicios externos (solo si están configurados)
+    // ===== HEALTH CHECKS DE APIS EXTERNAS =====
+
+    // Appointments API
+    var appointmentsConfig = configuration.GetSection("HealthChecks:Services:AppointmentsApi");
+    if (appointmentsConfig.GetValue<bool>("Enabled", false))
+    {
+        var appointmentsUrl = configuration["ExternalServices:Appointments:BaseUrl"];
+        if (!string.IsNullOrEmpty(appointmentsUrl))
+        {
+            services.AddHttpClient("AppointmentsApiHealthCheck");
+            healthChecksBuilder.AddTypeActivatedCheck<ExternalServiceHealthCheck>(
+                "appointments-api",
+                HealthStatus.Degraded,
+                new[] { ExternalServicesTag },
+                args: new object[] { $"{appointmentsUrl}/health", "Appointments API" });
+        }
+    }
+
+    // Clinical History API
+    var clinicalHistoryConfig = configuration.GetSection("HealthChecks:Services:ClinicalHistoryApi");
+    if (clinicalHistoryConfig.GetValue<bool>("Enabled", false))
+    {
+        var clinicalHistoryUrl = configuration["ExternalServices:ClinicalHistory:BaseUrl"];
+        if (!string.IsNullOrEmpty(clinicalHistoryUrl))
+        {
+            services.AddHttpClient("ClinicalHistoryApiHealthCheck");
+            healthChecksBuilder.AddTypeActivatedCheck<ExternalServiceHealthCheck>(
+                "clinical-history-api",
+                HealthStatus.Degraded,
+                new[] { ExternalServicesTag },
+                args: new object[] { $"{clinicalHistoryUrl}/health", "Clinical History API" });
+        }
+    }
+
+    // Hospitalizations API
+    var hospitalizationsConfig = configuration.GetSection("HealthChecks:Services:HospitalizationsApi");
+    if (hospitalizationsConfig.GetValue<bool>("Enabled", false))
+    {
+        var hospitalizationsUrl = configuration["ExternalServices:Hospitalizations:BaseUrl"];
+        if (!string.IsNullOrEmpty(hospitalizationsUrl))
+        {
+            services.AddHttpClient("HospitalizationsApiHealthCheck");
+            healthChecksBuilder.AddTypeActivatedCheck<ExternalServiceHealthCheck>(
+                "hospitalizations-api",
+                HealthStatus.Degraded,
+                new[] { ExternalServicesTag },
+                args: new object[] { $"{hospitalizationsUrl}/health", "Hospitalizations API" });
+        }
+    }
+
+    // Email Service
     var emailServiceUrl = configuration["ExternalServices:EmailService:BaseUrl"];
     if (!string.IsNullOrEmpty(emailServiceUrl))
     {
@@ -406,6 +456,7 @@ static void ConfigureHealthChecks(IServiceCollection services, IConfiguration co
         args: new object[] { emailServiceUrl, "Email Service" });
     }
 
+    // Notification Service
     var notificationServiceUrl = configuration["ExternalServices:NotificationService:BaseUrl"];
     if (!string.IsNullOrEmpty(notificationServiceUrl))
     {
