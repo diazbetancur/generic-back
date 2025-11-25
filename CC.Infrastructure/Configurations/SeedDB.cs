@@ -473,7 +473,32 @@ namespace CC.Infrastructure.Configurations
             {
                 var permissions = new[]
                 {
-                    // Módulo Requests
+                    // Módulo FrequentQuestions (Preguntas Frecuentes)
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "FrequentQuestions.View", Module = "FrequentQuestions", Description = "Ver preguntas frecuentes", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "FrequentQuestions.Create", Module = "FrequentQuestions", Description = "Crear preguntas frecuentes", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "FrequentQuestions.Update", Module = "FrequentQuestions", Description = "Actualizar preguntas frecuentes", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "FrequentQuestions.Delete", Module = "FrequentQuestions", Description = "Eliminar preguntas frecuentes", IsActive = true, DateCreated = DateTime.UtcNow },
+
+                    // Módulo Survey (Encuestas)
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Survey.View", Module = "Survey", Description = "Ver encuestas", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Survey.Create", Module = "Survey", Description = "Crear encuestas", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Survey.Update", Module = "Survey", Description = "Actualizar encuestas", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Survey.Delete", Module = "Survey", Description = "Eliminar encuestas", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Survey.ViewResults", Module = "Survey", Description = "Ver resultados de encuestas", IsActive = true, DateCreated = DateTime.UtcNow },
+
+                    // Módulo States (Estados)
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "States.View", Module = "States", Description = "Ver estados de solicitudes", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "States.Create", Module = "States", Description = "Crear estados", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "States.Update", Module = "States", Description = "Actualizar estados", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "States.Delete", Module = "States", Description = "Eliminar estados", IsActive = true, DateCreated = DateTime.UtcNow },
+
+                    // Módulo RequestType (Tipos de Solicitud)
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "RequestType.View", Module = "RequestType", Description = "Ver tipos de solicitud", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "RequestType.Create", Module = "RequestType", Description = "Crear tipos de solicitud", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "RequestType.Update", Module = "RequestType", Description = "Actualizar tipos de solicitud", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "RequestType.Delete", Module = "RequestType", Description = "Eliminar tipos de solicitud", IsActive = true, DateCreated = DateTime.UtcNow },
+
+                    // Módulo Requests (Solicitudes)
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Requests.View", Module = "Requests", Description = "Ver solicitudes", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Requests.Create", Module = "Requests", Description = "Crear solicitudes", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Requests.Update", Module = "Requests", Description = "Actualizar solicitudes", IsActive = true, DateCreated = DateTime.UtcNow },
@@ -481,50 +506,37 @@ namespace CC.Infrastructure.Configurations
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Requests.Assign", Module = "Requests", Description = "Asignar solicitudes a usuarios", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Requests.ChangeState", Module = "Requests", Description = "Cambiar estado de solicitudes", IsActive = true, DateCreated = DateTime.UtcNow },
 
-                    // Módulo Users
+                    // Módulo Users (Usuarios)
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Users.View", Module = "Users", Description = "Ver usuarios", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Users.Create", Module = "Users", Description = "Crear usuarios", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Users.Update", Module = "Users", Description = "Actualizar usuarios", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Users.Delete", Module = "Users", Description = "Eliminar usuarios", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Users.AssignRoles", Module = "Users", Description = "Asignar roles a usuarios", IsActive = true, DateCreated = DateTime.UtcNow },
 
-                    // Módulo Roles
+                    // Módulo Roles (Roles)
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Roles.View", Module = "Roles", Description = "Ver roles", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Roles.Create", Module = "Roles", Description = "Crear roles", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Roles.Update", Module = "Roles", Description = "Actualizar roles", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Roles.Delete", Module = "Roles", Description = "Eliminar roles", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Roles.ManagePermissions", Module = "Roles", Description = "Gestionar permisos de roles", IsActive = true, DateCreated = DateTime.UtcNow },
 
-                    // Módulo Reports
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Reports.View", Module = "Reports", Description = "Ver reportes", IsActive = true, DateCreated = DateTime.UtcNow },
+                    // Módulo Reports (Reportes del Sistema)
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Reports.View", Module = "Reports", Description = "Ver reportes del sistema", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Reports.Create", Module = "Reports", Description = "Crear reportes personalizados", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Reports.Export", Module = "Reports", Description = "Exportar reportes", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Reports.ViewAll", Module = "Reports", Description = "Ver todos los reportes del sistema", IsActive = true, DateCreated = DateTime.UtcNow },
 
-                    // Módulo NilRead
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "NilRead.ViewExams", Module = "NilRead", Description = "Ver exámenes diagnósticos", IsActive = true, DateCreated = DateTime.UtcNow },
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "NilRead.ViewReports", Module = "NilRead", Description = "Ver informes PDF", IsActive = true, DateCreated = DateTime.UtcNow },
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "NilRead.ViewImages", Module = "NilRead", Description = "Ver imágenes diagnósticas", IsActive = true, DateCreated = DateTime.UtcNow },
-
-                    // Módulo Configuration
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Config.View", Module = "Configuration", Description = "Ver configuraciones", IsActive = true, DateCreated = DateTime.UtcNow },
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Config.Update", Module = "Configuration", Description = "Actualizar configuraciones", IsActive = true, DateCreated = DateTime.UtcNow },
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Config.ViewAuditLog", Module = "Configuration", Description = "Ver logs de auditoría", IsActive = true, DateCreated = DateTime.UtcNow },
-
-                    // Módulo Content (Gestión de Contenido)
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Content.View", Module = "Content", Description = "Ver contenido (CardioTV, FAQs, etc.)", IsActive = true, DateCreated = DateTime.UtcNow },
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Content.Create", Module = "Content", Description = "Crear nuevo contenido", IsActive = true, DateCreated = DateTime.UtcNow },
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Content.Update", Module = "Content", Description = "Editar contenido existente", IsActive = true, DateCreated = DateTime.UtcNow },
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Content.Delete", Module = "Content", Description = "Eliminar contenido", IsActive = true, DateCreated = DateTime.UtcNow },
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Content.Publish", Module = "Content", Description = "Publicar/despublicar contenido", IsActive = true, DateCreated = DateTime.UtcNow },
-
-                    // Módulo States (Gestión de Estados)
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "States.View", Module = "States", Description = "Ver estados de solicitudes", IsActive = true, DateCreated = DateTime.UtcNow },
-                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "States.Manage", Module = "States", Description = "Crear/editar/eliminar estados", IsActive = true, DateCreated = DateTime.UtcNow },
+                    // Módulo Configuration (Configuración del Sistema)
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Configuration.View", Module = "Configuration", Description = "Ver configuraciones del sistema", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Configuration.Update", Module = "Configuration", Description = "Actualizar configuraciones del sistema", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Configuration.ViewAuditLog", Module = "Configuration", Description = "Ver logs de auditoría", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Configuration.ManageTemplates", Module = "Configuration", Description = "Gestionar plantillas de email/SMS", IsActive = true, DateCreated = DateTime.UtcNow },
 
                     // Módulo Telemetry (Telemetría y Analytics)
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Telemetry.View", Module = "Telemetry", Description = "Ver telemetría propia", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Telemetry.ViewAll", Module = "Telemetry", Description = "Ver toda la telemetría del sistema", IsActive = true, DateCreated = DateTime.UtcNow },
                     new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Telemetry.Export", Module = "Telemetry", Description = "Exportar datos de telemetría", IsActive = true, DateCreated = DateTime.UtcNow },
+                    new Domain.Entities.Permission { Id = Guid.NewGuid(), Name = "Telemetry.ViewMetrics", Module = "Telemetry", Description = "Ver métricas del sistema", IsActive = true, DateCreated = DateTime.UtcNow },
                 };
 
                 await _dbContext.Permissions.AddRangeAsync(permissions);
