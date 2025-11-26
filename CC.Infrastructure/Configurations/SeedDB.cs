@@ -26,6 +26,24 @@ namespace CC.Infrastructure.Configurations
             await EnsureStates();
             await EnsurePermissions();
             await EnsureAdmin();
+            await EnsureRequestType();
+        }
+
+        private async Task EnsureRequestType()
+        {
+            if (!_dbContext.RequestTypes.Any())
+            {
+                _dbContext.RequestTypes.Add(new Domain.Entities.RequestType
+                {
+                    Name = "Actualización de datos",
+                    IsSystem = true,
+                    Template = "",
+                    DateCreated = DateTime.UtcNow,
+                    Id = Guid.NewGuid(),
+                });
+
+                await _dbContext.SaveChangesAsync();
+            }
         }
 
         /// <summary>

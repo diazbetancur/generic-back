@@ -8,12 +8,12 @@ namespace CC.Domain.Dtos
         /// <summary>
         /// Nombre del tipo de solicitud
         /// </summary>
-        public required string Name { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// Plantilla HTML o texto del tipo de solicitud
         /// </summary>
-        public required string Template { get; set; }
+        public string Template { get; set; }
 
         /// <summary>
         /// Indica si el registro está eliminado (soft delete)
@@ -24,5 +24,7 @@ namespace CC.Domain.Dtos
         /// Indica si el tipo de solicitud está activo
         /// </summary>
         public bool IsActive { get; set; }
+
+        public bool IsSystem { get; set; }
     }
 }

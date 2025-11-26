@@ -18,5 +18,11 @@ namespace Api_Portar_Paciente.Controllers
         public RequestTypeController(IRequestTypeService service) : base(service)
         {
         }
+
+        [AllowAnonymous]
+        public override Task<IActionResult> GetAllAsync()
+        {
+            return base.GetAllAsync();
+        }
     }
 }
