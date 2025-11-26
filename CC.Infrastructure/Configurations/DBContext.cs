@@ -109,6 +109,11 @@ namespace CC.Infrastructure.Configurations
         /// </summary>
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
+        /// <summary>
+        /// Preferencias de notificación de pacientes
+        /// </summary>
+        public DbSet<Notification> Notifications { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -242,6 +247,18 @@ namespace CC.Infrastructure.Configurations
                 .WithMany()
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Notification Configuration
+            builder.Entity<Notification>().HasKey(c => c.Id);
+            builder.Entity<Notification>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            builder.Entity<Notification>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            builder.Entity<Notification>().HasIndex(n => new { n.DocTypeId, n.DocNumber }).IsUnique();
+            builder.Entity<Notification>().Property(n => n.DocNumber).HasMaxLength(50).IsRequired();
+            builder.Entity<Notification>()
+                .HasOne(n => n.DocType)
+                .WithMany()
+                .HasForeignKey(n => n.DocTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             DisableCascadingDelete(builder);
         }

@@ -52,6 +52,10 @@ namespace CC.Domain
                 .ReverseMap()
                 .ForMember(dest => dest.CodeHash, opt => opt.Ignore())
                 .ForMember(dest => dest.DocType, opt => opt.Ignore());
+
+            CreateMap<Notification, NotificationDto>()
+                .ReverseMap()
+                .ForMember(dest => dest.DocType, opt => opt.Ignore());
         }
     }
 }

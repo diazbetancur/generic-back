@@ -263,6 +263,7 @@ namespace Api_Portar_Paciente.Handlers
             services.AddScoped<IDocTypeService, DocTypeService>();
             services.AddScoped<IDataPolicyAcceptanceService, DataPolicyAcceptanceService>();
             services.AddScoped<IPatientService, PatientService>();
+            services.AddScoped<INotificationService, NotificationService>();
 
             // RequestType and State Services
             services.AddScoped<IRequestTypeService, RequestTypeService>();
@@ -385,6 +386,7 @@ namespace Api_Portar_Paciente.Handlers
             services.AddScoped<IOtpChallengeRepository, OtpChallengeRepository>();
             services.AddScoped<ISessionsRepository, SessionsRepository>();
             services.AddScoped<ILoginAttemptRepository, LoginAttemptRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
         }
     }
 }
