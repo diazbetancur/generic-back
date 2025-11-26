@@ -139,14 +139,18 @@ namespace CC.Infrastructure.External.ClinicalHistory
                     return null;
                 }
 
-                // Leer el contenido como Stream
-                var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+                // Copiar el contenido a un MemoryStream antes de que se dispose el response
+                var memoryStream = new MemoryStream();
+                await response.Content.CopyToAsync(memoryStream, ct).ConfigureAwait(false);
+                
+                // Resetear la posición del stream al inicio
+                memoryStream.Position = 0;
 
                 Logger.LogInformation(
-                    "Descarga exitosa: {Endpoint} - Status: {StatusCode}, Duration: {Duration}ms",
-                    endpoint, (int)response.StatusCode, duration);
+                    "Descarga exitosa: {Endpoint} - Status: {StatusCode}, Duration: {Duration}ms, Size: {Size} bytes",
+                    endpoint, (int)response.StatusCode, duration, memoryStream.Length);
 
-                return stream;
+                return memoryStream;
             }
             catch (Exception ex)
             {

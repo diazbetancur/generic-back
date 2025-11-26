@@ -29,17 +29,17 @@ namespace CC.Domain.Dtos.ExternalApis
         /// <summary>
         /// Fecha de ingreso
         /// </summary>
-        public string AdmissionDate { get; set; } = string.Empty;
+        public string admission_date { get; set; } = string.Empty;
 
         /// <summary>
         /// Indica si el PDF está disponible
         /// </summary>
-        public bool PdfAvailable { get; set; }
+        public bool pdf_available { get; set; }
 
         /// <summary>
         /// URL para descargar el PDF
         /// </summary>
-        public string? PdfUrl { get; set; }
+        public string? pdf_url { get; set; }
     }
 
     /// <summary>

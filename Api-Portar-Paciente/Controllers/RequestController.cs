@@ -1,6 +1,7 @@
 using CC.Domain.Dtos;
 using CC.Domain.Entities;
 using CC.Domain.Interfaces.Services;
+using CC.Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +12,6 @@ namespace Api_Portar_Paciente.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class RequestController : ControllerBase
     {
         private readonly IRequestService _service;
@@ -26,11 +26,12 @@ namespace Api_Portar_Paciente.Controllers
         }
 
         /// <summary>
-        /// Crea una nueva solicitud (frontend paciente)
+        /// Crea una nueva solicitud (frontend paciente - SIN AUTENTICACIÓN)
         /// </summary>
         /// <param name="dto">Datos de la solicitud a crear</param>
         /// <returns>Solicitud creada con su ID y estado inicial</returns>
         [HttpPost]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(RequestDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -57,12 +58,13 @@ namespace Api_Portar_Paciente.Controllers
         }
 
         /// <summary>
-        /// Actualiza la descripción de una solicitud (paciente)
+        /// Actualiza la descripción de una solicitud (paciente - SIN AUTENTICACIÓN)
         /// </summary>
         /// <param name="id">ID de la solicitud</param>
         /// <param name="dto">Nueva descripción</param>
         /// <returns>Solicitud actualizada</returns>
         [HttpPut("{id}")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(RequestDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -110,12 +112,13 @@ namespace Api_Portar_Paciente.Controllers
         }
 
         /// <summary>
-        /// Actualiza el estado de una solicitud (asesor/admin)
+        /// Actualiza el estado de una solicitud (asesor/admin - REQUIERE PERMISOS)
         /// </summary>
         /// <param name="id">ID de la solicitud</param>
         /// <param name="dto">Datos de actualización por asesor</param>
         /// <returns>Solicitud actualizada</returns>
         [HttpPut("{id}/advisor")]
+        [Authorize(Policy = PermissionConstants.Policies.CanChangeRequestState)]
         [ProducesResponseType(typeof(RequestDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -169,7 +172,7 @@ namespace Api_Portar_Paciente.Controllers
         }
 
         /// <summary>
-        /// Obtiene solicitudes de un paciente específico por documento
+        /// Obtiene solicitudes de un paciente específico por documento (SIN AUTENTICACIÓN)
         /// </summary>
         /// <param name="docTypeCode">Código del tipo de documento (ej: CC, TI)</param>
         /// <param name="docNumber">Número de documento</param>
@@ -177,6 +180,7 @@ namespace Api_Portar_Paciente.Controllers
         /// <param name="to">Fecha hasta (opcional, default: hoy)</param>
         /// <returns>Lista de solicitudes del paciente</returns>
         [HttpGet("patient")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(IEnumerable<RequestDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetByPatient(
@@ -205,11 +209,12 @@ namespace Api_Portar_Paciente.Controllers
         }
 
         /// <summary>
-        /// Obtiene solicitudes con filtros generales (admin)
+        /// Obtiene solicitudes con filtros generales (admin - REQUIERE PERMISOS)
         /// </summary>
         /// <param name="query">Filtros de búsqueda</param>
         /// <returns>Lista paginada de solicitudes con total</returns>
         [HttpGet]
+        [Authorize(Policy = PermissionConstants.Policies.CanViewRequests)]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetFiltered([FromQuery] RequestListQueryDto query)
@@ -234,11 +239,12 @@ namespace Api_Portar_Paciente.Controllers
         }
 
         /// <summary>
-        /// Obtiene una solicitud por ID
+        /// Obtiene una solicitud por ID (permite acceso a pacientes y admins)
         /// </summary>
         /// <param name="id">ID de la solicitud</param>
         /// <returns>Detalles de la solicitud</returns>
         [HttpGet("{id}")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(RequestDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(Guid id)
@@ -265,11 +271,12 @@ namespace Api_Portar_Paciente.Controllers
         }
 
         /// <summary>
-        /// Obtiene el historial completo de cambios de una solicitud
+        /// Obtiene el historial completo de cambios de una solicitud (permite acceso a pacientes y admins)
         /// </summary>
         /// <param name="id">ID de la solicitud</param>
         /// <returns>Lista de cambios históricos</returns>
         [HttpGet("{id}/history")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(IEnumerable<HistoryRequestDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetHistory(Guid id)

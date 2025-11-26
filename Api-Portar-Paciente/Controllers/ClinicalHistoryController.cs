@@ -98,8 +98,9 @@ namespace Api_Portar_Paciente.Controllers
         /// </summary>
         /// <param name="patientId">Número de documento del paciente</param>
         /// <param name="episode">Número de episodio</param>
+        /// <returns>Objeto JSON con el PDF codificado en base64</returns>
         [HttpGet("patient/{patientId}/episodes/{episode}/pdf")]
-        [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PdfResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DownloadClinicalHistoryPdf(string patientId, string episode)
@@ -127,7 +128,25 @@ namespace Api_Portar_Paciente.Controllers
                     return NotFound(new { error = "PDF de historia clínica no encontrado" });
                 }
 
-                return File(pdfStream, "application/pdf", $"historia_clinica_{episode}.pdf");
+                // Usar using para asegurar que el stream se dispose correctamente
+                using (pdfStream)
+                {
+                    // Leer el stream a bytes
+                    using var memoryStream = new MemoryStream();
+                    await pdfStream.CopyToAsync(memoryStream);
+                    var pdfBytes = memoryStream.ToArray();
+                    var base64Pdf = Convert.ToBase64String(pdfBytes);
+
+                    var response = new PdfResponseDto
+                    {
+                        FileName = $"historia_clinica_{episode}.pdf",
+                        ContentType = "application/pdf",
+                        Base64Content = base64Pdf,
+                        Size = pdfBytes.Length
+                    };
+
+                    return Ok(response);
+                }
             }
             catch (Exception ex)
             {
@@ -143,8 +162,9 @@ namespace Api_Portar_Paciente.Controllers
         /// </summary>
         /// <param name="patientId">Número de documento del paciente</param>
         /// <param name="episode">Número de episodio</param>
+        /// <returns>Objeto JSON con el PDF codificado en base64</returns>
         [HttpGet("patient/{patientId}/episodes/{episode}/incapacity")]
-        [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PdfResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DownloadIncapacityPdf(string patientId, string episode)
@@ -172,7 +192,25 @@ namespace Api_Portar_Paciente.Controllers
                     return NotFound(new { error = "Documento de incapacidad no encontrado" });
                 }
 
-                return File(pdfStream, "application/pdf", $"incapacidad_{episode}.pdf");
+                // Usar using para asegurar que el stream se dispose correctamente
+                using (pdfStream)
+                {
+                    // Leer el stream a bytes
+                    using var memoryStream = new MemoryStream();
+                    await pdfStream.CopyToAsync(memoryStream);
+                    var pdfBytes = memoryStream.ToArray();
+                    var base64Pdf = Convert.ToBase64String(pdfBytes);
+
+                    var response = new PdfResponseDto
+                    {
+                        FileName = $"incapacidad_{episode}.pdf",
+                        ContentType = "application/pdf",
+                        Base64Content = base64Pdf,
+                        Size = pdfBytes.Length
+                    };
+
+                    return Ok(response);
+                }
             }
             catch (Exception ex)
             {
