@@ -68,6 +68,7 @@ namespace Api_Portar_Paciente.Controllers.Admin
                         Id = role.Id,
                         Name = role.Name!,
                         Description = role.Description,
+                        isSystem = role.isSystem,
                         PermissionIds = permissions.Select(p => p.Id).ToList(),
                         Permissions = permissions.Select(p => new PermissionDto
                         {
