@@ -203,8 +203,8 @@ namespace CC.Infrastructure.Configurations
                     DateCreated = DateTime.Now,
                     Id = Guid.NewGuid(),
                     Key = "MessageDataPolicyAcceptances",
-                    Value = "Mensaje para mostrar ",
-                    Description = "Pendiente el mensaje que va ir aqui",
+                    Value = "Al iniciar sesión estas aceptando los Términos y Condiciones de LaCardio y nuestra <a href=\"https://www.lacardio.org/terminos-y-condiciones/\" target=\"_blank\" rel=\"noopener noreferrer\">Política de Tratamiento de Datos</a>",
+                    Description = "Mensaje para el inicio",
                 }
 );
                 _dbContext.GeneralSettings.Add(new Domain.Entities.GeneralSettings
@@ -232,10 +232,45 @@ namespace CC.Infrastructure.Configurations
                     DateCreated = DateTime.Now,
                     Id = Guid.NewGuid(),
                     Key = "MensajeSinContacto",
-                    Value = "No se encontraron medios de contacto registrados. Por favor comuníquese al WhatsApp +57 300 123 45 67 para actualizar sus datos.",
+                    Value =
+                @"No se encontraron medios de contacto registrados.<br>
+Por favor comuníquese al WhatsApp
+<a href=""https://wa.me/573001234567?text=Hola%2C%20quiero%20actualizar%20mis%20datos%20de%20contacto.""
+   target=""_blank""
+   rel=""noopener noreferrer"">
+   +57 300 123 45 67
+</a>
+para actualizar sus datos.",
                     Description = "Mensaje mostrado cuando el usuario no tiene email ni celular registrado",
-                }
-                );
+                });
+
+                _dbContext.GeneralSettings.Add(new Domain.Entities.GeneralSettings
+                {
+                    DateCreated = DateTime.Now,
+                    Id = Guid.NewGuid(),
+                    Key = "MensajeCancelarCita",
+                    Value =
+                @"<a href=""https://wa.me/573001234567?text=Hola%2C%20quiero%20cancelar%20mi%20cita.""
+   target=""_blank""
+   rel=""noopener noreferrer"">
+   +57 300 123 45 67
+</a>",
+                    Description = "Mensaje mostrado cuando quiere cancelar la cita",
+                });
+
+                _dbContext.GeneralSettings.Add(new Domain.Entities.GeneralSettings
+                {
+                    DateCreated = DateTime.Now,
+                    Id = Guid.NewGuid(),
+                    Key = "MensajeReprogramarCita",
+                    Value =
+                @"<a href=""https://wa.me/573001234567?text=Hola%2C%20quiero%20reprogramar%20mi%20cita.""
+   target=""_blank""
+   rel=""noopener noreferrer"">
+   +57 300 123 45 67
+</a>",
+                    Description = "Mensaje mostrado cuando quiere reprogramar la cita",
+                });
 
                 _dbContext.GeneralSettings.Add(new Domain.Entities.GeneralSettings
                 {
@@ -384,10 +419,6 @@ namespace CC.Infrastructure.Configurations
                                     </td>
                                 </tr>
                             </table>
-
-                            <p style='color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 10px 0;'>
-                                Si no reconoce este inicio de sesión, por favor comuníquese con nosotros de inmediato.
-                            </p>
 
                             <p style='color: #0066cc; font-size: 16px; line-height: 1.6; margin: 0; font-weight: 600;'>
                                 Fundación Cardioinfantil - LaCardio

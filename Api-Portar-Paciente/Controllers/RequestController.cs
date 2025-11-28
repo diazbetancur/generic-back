@@ -256,10 +256,10 @@ namespace Api_Portar_Paciente.Controllers
                     return NotFound(new { error = "Solicitud no encontrada" });
 
                 var history = await _historyRequestService.GetAllAsync(x => x.RequestId == result.Id);
-
-                result.LastObservation = history
+                var data = history
                     .OrderByDescending(h => h.DateCreated)
-                    .FirstOrDefault()?.Changes;
+                    .FirstOrDefault();
+                result.LastObservation = data?.UserId == null ? "" : data.Changes;
 
                 return Ok(result);
             }

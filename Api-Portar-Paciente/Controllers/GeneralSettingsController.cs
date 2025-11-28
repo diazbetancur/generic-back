@@ -50,7 +50,7 @@ namespace Api_Portar_Paciente.Controllers
 
             var allowedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                "Public:MessageDataPolicyAcceptances",
+                "MessageDataPolicyAcceptances",
             };
 
             if (!allowedKeys.Contains(key))
@@ -63,7 +63,7 @@ namespace Api_Portar_Paciente.Controllers
             if (setting == null)
                 return NotFound(new { message = $"Configuración con clave '{key}' no encontrada" });
 
-            return Ok(new { key = setting.Key, value = setting.Value });
+            return Ok(setting.Value);
         }
 
         /// <summary>
