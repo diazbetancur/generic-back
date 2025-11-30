@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using System.Text.Json;
 
-namespace Api_Portar_Paciente.Controllers;
+namespace Api___PROJECT_NAME__.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

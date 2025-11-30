@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Api_Portar_Paciente</RootNamespace>
+    <RootNamespace>Api___PROJECT_NAME__</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CC.Aplication\CC.Aplication.csproj" />
+    <ProjectReference Include="..\CC.Application\CC.Application.csproj" />
     <ProjectReference Include="..\CC.Infrastructure\CC.Infrastructure.csproj" />
   </ItemGroup>
 

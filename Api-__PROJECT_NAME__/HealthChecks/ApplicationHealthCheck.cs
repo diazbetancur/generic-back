@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Reflection;
 
-namespace Api_Portar_Paciente.HealthChecks;
+namespace Api___PROJECT_NAME__.HealthChecks;
 
 public class ApplicationHealthCheck : IHealthCheck
 {

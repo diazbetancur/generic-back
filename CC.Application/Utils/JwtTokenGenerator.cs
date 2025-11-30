@@ -8,7 +8,7 @@ using System.Text;
 namespace CC.Aplication.Utils
 {
     /// <summary>
-    /// Generador de tokens JWT para autenticación
+    /// Generador de tokens JWT para autenticaciï¿½n
     /// </summary>
     public class JwtTokenGenerator
     {
@@ -47,7 +47,6 @@ namespace CC.Aplication.Utils
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("UserType", "Admin"), // Claim crítico para política AdminOnly
                 new Claim("FirstName", user.FirstName),
                 new Claim("LastName", user.LastName)
             };
@@ -80,7 +79,7 @@ namespace CC.Aplication.Utils
         /// Genera un token JWT para un paciente (OTP autenticado)
         /// </summary>
         /// <param name="user">Usuario paciente</param>
-        /// <param name="history">Número de historia clínica</param>
+        /// <param name="history">Nï¿½mero de historia clï¿½nica</param>
         /// <returns>Token JWT</returns>
         public string GeneratePatientToken(User user, string? history = null)
         {
@@ -98,9 +97,7 @@ namespace CC.Aplication.Utils
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("UserType", "Patient"), // Claim crítico para política PatientOnly
-                new Claim("DocumentNumber", user.DocumentNumber)
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
             if (!string.IsNullOrWhiteSpace(history))

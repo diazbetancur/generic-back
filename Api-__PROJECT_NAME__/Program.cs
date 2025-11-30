@@ -1,5 +1,5 @@
-using Api_Portar_Paciente.HealthChecks;
-using Api_Portar_Paciente.Services;
+using Api___PROJECT_NAME__.HealthChecks;
+using Api___PROJECT_NAME__.Services;
 using AspNetCoreRateLimit;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -25,12 +25,12 @@ Log.Logger = new LoggerConfiguration()
  .Enrich.FromLogContext()
  .Enrich.WithMachineName()
  .Enrich.WithEnvironmentName()
- .Enrich.WithProperty("Application", "PortalPacientesAPI")
+ .Enrich.WithProperty("Application", "__PROJECT_NAME___API")
  .CreateLogger();
 
 try
 {
-    Log.Information("Iniciando aplicación Portal Pacientes API");
+    Log.Information("Iniciando aplicación __PROJECT_NAME__ API");
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -42,7 +42,7 @@ try
     Log.Information("Ejecutándose en ambiente: {Environment}", environment);
 
     // Cargar configuraciones específicas del ambiente
-    Log.Information("Cargar configuraciones especificas del ambiente");
+    Log.Information("Cargando configuraciones específicas del ambiente");
 
     builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -54,11 +54,11 @@ try
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll", policy =>
-     {
-        policy.AllowAnyOrigin()
-     .AllowAnyMethod()
-     .AllowAnyHeader();
-    });
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
     });
 
     // Add services to the container.
@@ -67,10 +67,6 @@ try
     // ===== LOG CLEANUP SERVICE =====
     builder.Services.AddHostedService<LogCleanupService>();
     Log.Information("LogCleanupService registrado como Hosted Service");
-
-    // ===== AUTH CLEANUP SERVICE =====
-    builder.Services.AddHostedService<AuthCleanupService>();
-    Log.Information("AuthCleanupService registrado como Hosted Service");
 
     // ===== RATE LIMITING CONFIGURATION =====
     builder.Services.AddMemoryCache();
@@ -127,7 +123,7 @@ try
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
-        
+
         // ✅ CRÍTICO: Configurar JWT como esquema por defecto
         builder.Services.AddAuthentication(options =>
         {
@@ -177,19 +173,19 @@ try
     builder.Services.AddHttpContextAccessor();
 
     // Registrar Authorization Handler (Scoped porque usa IAuthorizationService que es Scoped)
-    builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, 
+    builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler,
         CC.Infrastructure.Authorization.PermissionHandler>();
 
-    // Configurar políticas usando configuración centralizada
-    builder.Services.AddAuthorization(Api_Portar_Paciente.Configuration.AuthorizationPoliciesConfiguration.ConfigurePolicies);
+    // Authorization básico sin políticas de dominio específico
+    builder.Services.AddAuthorization();
 
-    Log.Information("Políticas de autorización configuradas: 27 políticas (PatientOnly, AdminOnly y 25 permisos granulares)");
+    Log.Information("Políticas de autorización configuradas correctamente");
 
     // Custom DI registrations (DbContext, Repositories, Services, Logging, Auditing)
-    Api_Portar_Paciente.Handlers.DependencyInyectionHandler.DepencyInyectionConfig(
-    builder.Services,
-    builder.Configuration,
-    environment);
+    Api___PROJECT_NAME__.Handlers.DependencyInyectionHandler.DepencyInyectionConfig(
+        builder.Services,
+        builder.Configuration,
+        environment);
 
     // ===== CONFIGURAR SWAGGER CON DOCUMENTACIÓN XML =====
     var enableSwagger = builder.Configuration.GetValue<bool>("Features:EnableSwagger");
@@ -200,24 +196,24 @@ try
         {
             c.SwaggerDoc("v1", new OpenApiInfo
             {
-                Title = "Portal Pacientes API - Cardioinfantil",
+                Title = "__PROJECT_NAME__ API",
                 Version = "v1.0",
-                Description = "API REST para el Portal de Pacientes de la Fundación Cardioinfantil. " +
-     "Proporciona endpoints para autenticación, gestión de contenido y servicios al paciente.",
+                Description = "Clean Architecture API Template with JWT Authentication, Authorization, and SOLID principles. " +
+                              "Provides endpoints for authentication, user management, and modular business logic.",
                 Contact = new OpenApiContact
                 {
-                    Name = "Equipo de Desarrollo Cardioinfantil",
-                    Email = "desarrollo@cardioinfantil.org"
+                    Name = "Your Development Team",
+                    Email = "dev@yourcompany.com"
                 }
             });
 
             // Incluir comentarios XML de todos los proyectos
             var xmlFiles = new[]
-     {
- $"{Assembly.GetExecutingAssembly().GetName().Name}.xml",
- "CC.Domain.xml",
- "CC.Aplication.xml"
-        };
+            {
+                $"{Assembly.GetExecutingAssembly().GetName().Name}.xml",
+                "__PROJECT_NAME__.Domain.xml",
+                "__PROJECT_NAME__.Application.xml"
+            };
 
             foreach (var xmlFile in xmlFiles)
             {
@@ -237,8 +233,8 @@ try
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header usando el esquema Bearer. \r\n\r\n" +
-     "Ingresa 'Bearer' [espacio] y luego tu token en el campo de texto.\r\n\r\n" +
-     "Ejemplo: 'Bearer12345abcdef'",
+                              "Ingresa 'Bearer' [espacio] y luego tu token en el campo de texto.\r\n\r\n" +
+                              "Ejemplo: 'Bearer 12345abcdef'",
                 Name = "Authorization",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.ApiKey,
@@ -246,22 +242,22 @@ try
             });
 
             c.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
- {
- new OpenApiSecurityScheme
- {
- Reference = new OpenApiReference
- {
- Type = ReferenceType.SecurityScheme,
- Id = "Bearer"
- },
- Scheme = "oauth2",
- Name = "Bearer",
- In = ParameterLocation.Header
- },
- new List<string>()
- }
-        });
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        },
+                        Scheme = "oauth2",
+                        Name = "Bearer",
+                        In = ParameterLocation.Header
+                    },
+                    new List<string>()
+                }
+            });
         });
 
         Log.Information("Swagger configurado y habilitado");
@@ -296,207 +292,12 @@ try
     app.UseSerilogRequestLogging(options =>
     {
         options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
-     {
-        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
-        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-        diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
-        diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
-    };
-    });
-
-    // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment() || enableSwagger)
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI(c =>
         {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", $"Portal Pacientes API - {environment} v1.0");
-            c.DocumentTitle = $"Portal Pacientes API - {environment}";
-            c.RoutePrefix = "swagger";
-            c.DisplayRequestDuration();
-            c.EnableDeepLinking();
-            c.EnableFilter();
-            c.EnableTryItOutByDefault();
-
-            c.InjectJavascript("/swagger-ext/polyfills.js");
-        });
-
-        Log.Information("Swagger UI disponible en /swagger");
-    }
-
-    // Middleware de manejo de errores basado en el ambiente
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseDeveloperExceptionPage();
-    }
-    else
-    {
-        app.UseExceptionHandler("/Error");
-        app.UseHsts();
-    }
-
-    app.UseHttpsRedirection();
-
-    // ===== RATE LIMITING MIDDLEWARE (ANTES DE AUTHENTICATION) =====
-    app.UseIpRateLimiting();
-
-    // ===== CORS =====
-    app.UseCors("AllowAll");
-
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    // ===== ERROR HANDLING MIDDLEWARE =====
-    app.UseMiddleware<Api_Portar_Paciente.Handlers.ErrorHandlingMiddleware>();
-
-    // Heartbeat de sesión (actualiza LastSeenAt con throttling)
-    app.UseMiddleware<Api_Portar_Paciente.Handlers.SessionHeartbeatMiddleware>();
-
-    app.MapControllers();
-
-    // Configurar endpoints de Health Checks
-    ConfigureHealthCheckEndpoints(app);
-
-    // Mostrar información del ambiente al iniciar
-    Log.Information("✅ Aplicación iniciada en ambiente: {Environment}", environment);
-    Log.Information("📚 Swagger habilitado: {SwaggerEnabled}", enableSwagger);
-    Log.Information("🚦 Rate Limiting habilitado: {RateLimitingEnabled}", true);
-    Log.Information("🧹 Log Cleanup: Retención de {RetentionDays} días, limpieza a las {CleanupHour}:00",
-    builder.Configuration.GetValue<int>("Logging:RetentionDays", 30),
-    builder.Configuration.GetValue<int>("Logging:CleanupHour", 3));
-
-    await app.RunAsync();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "❌ La aplicación terminó unexpectedly");
-    throw;
-}
-finally
-        CC.Infrastructure.Authorization.PermissionHandler>();
-
-    // Configurar políticas usando configuración centralizada
-    builder.Services.AddAuthorization(Api_Portar_Paciente.Configuration.AuthorizationPoliciesConfiguration.ConfigurePolicies);
-
-    Log.Information("Políticas de autorización configuradas: 27 políticas (PatientOnly, AdminOnly y 25 permisos granulares)");
-
-    // Custom DI registrations (DbContext, Repositories, Services, Logging, Auditing)
-    Api_Portar_Paciente.Handlers.DependencyInyectionHandler.DepencyInyectionConfig(
-    builder.Services,
-    builder.Configuration,
-    environment);
-
-    // ===== CONFIGURAR SWAGGER CON DOCUMENTACIÓN XML =====
-    var enableSwagger = builder.Configuration.GetValue<bool>("Features:EnableSwagger");
-    if (enableSwagger || true)
-    {
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", new OpenApiInfo
-            {
-                Title = "Portal Pacientes API - Cardioinfantil",
-                Version = "v1.0",
-                Description = "API REST para el Portal de Pacientes de la Fundación Cardioinfantil. " +
-     "Proporciona endpoints para autenticación, gestión de contenido y servicios al paciente.",
-                Contact = new OpenApiContact
-                {
-                    Name = "Equipo de Desarrollo Cardioinfantil",
-                    Email = "desarrollo@cardioinfantil.org"
-                }
-            });
-
-            // Incluir comentarios XML de todos los proyectos
-            var xmlFiles = new[]
-     {
- $"{Assembly.GetExecutingAssembly().GetName().Name}.xml",
- "CC.Domain.xml",
- "CC.Aplication.xml"
+            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+            diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+            diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
+            diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
         };
-
-            foreach (var xmlFile in xmlFiles)
-            {
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                if (File.Exists(xmlPath))
-                {
-                    c.IncludeXmlComments(xmlPath);
-                    Log.Information("Documentación XML cargada: {XmlFile}", xmlFile);
-                }
-                else
-                {
-                    Log.Warning("Archivo XML no encontrado: {XmlFile}", xmlFile);
-                }
-            }
-
-            // Configurar autenticación JWT en Swagger
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            {
-                Description = "JWT Authorization header usando el esquema Bearer. \r\n\r\n" +
-     "Ingresa 'Bearer' [espacio] y luego tu token en el campo de texto.\r\n\r\n" +
-     "Ejemplo: 'Bearer12345abcdef'",
-                Name = "Authorization",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "Bearer"
-            });
-
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
- {
- new OpenApiSecurityScheme
- {
- Reference = new OpenApiReference
- {
- Type = ReferenceType.SecurityScheme,
- Id = "Bearer"
- },
- Scheme = "oauth2",
- Name = "Bearer",
- In = ParameterLocation.Header
- },
- new List<string>()
- }
-        });
-        });
-
-        Log.Information("Swagger configurado y habilitado");
-    }
-
-    // Configurar Health Checks basado en el ambiente
-    ConfigureHealthChecks(builder.Services, builder.Configuration);
-
-    var app = builder.Build();
-
-    // ===== APLICAR MIGRACIONES Y SEED =====
-    using (var scope = app.Services.CreateScope())
-    {
-        var services = scope.ServiceProvider;
-        try
-        {
-            var db = services.GetRequiredService<DBContext>();
-            await db.Database.MigrateAsync();
-
-            var seeder = services.GetRequiredService<SeedDB>();
-            await seeder.SeedAsync();
-            Log.Information("✅ Migraciones aplicadas e inicialización de datos completada");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "❌ Error al aplicar migraciones/seed al iniciar la aplicación");
-            // No lanzar excepción para permitir que la aplicación inicie
-        }
-    }
-
-    // ===== USAR SERILOG PARA REQUESTS HTTP =====
-    app.UseSerilogRequestLogging(options =>
-    {
-        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
-     {
-        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
-        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-        diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
-        diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
-    };
     });
 
     // Configure the HTTP request pipeline.
@@ -505,15 +306,13 @@ finally
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", $"Portal Pacientes API - {environment} v1.0");
-            c.DocumentTitle = $"Portal Pacientes API - {environment}";
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", $"__PROJECT_NAME__ API - {environment} v1.0");
+            c.DocumentTitle = $"__PROJECT_NAME__ API - {environment}";
             c.RoutePrefix = "swagger";
             c.DisplayRequestDuration();
             c.EnableDeepLinking();
             c.EnableFilter();
             c.EnableTryItOutByDefault();
-
-            c.InjectJavascript("/swagger-ext/polyfills.js");
         });
 
         Log.Information("Swagger UI disponible en /swagger");
@@ -542,10 +341,7 @@ finally
     app.UseAuthorization();
 
     // ===== ERROR HANDLING MIDDLEWARE =====
-    app.UseMiddleware<Api_Portar_Paciente.Handlers.ErrorHandlingMiddleware>();
-
-    // Heartbeat de sesión (actualiza LastSeenAt con throttling)
-    app.UseMiddleware<Api_Portar_Paciente.Handlers.SessionHeartbeatMiddleware>();
+    app.UseMiddleware<Api___PROJECT_NAME__.Handlers.ErrorHandlingMiddleware>();
 
     app.MapControllers();
 
@@ -557,14 +353,14 @@ finally
     Log.Information("📚 Swagger habilitado: {SwaggerEnabled}", enableSwagger);
     Log.Information("🚦 Rate Limiting habilitado: {RateLimitingEnabled}", true);
     Log.Information("🧹 Log Cleanup: Retención de {RetentionDays} días, limpieza a las {CleanupHour}:00",
-    builder.Configuration.GetValue<int>("Logging:RetentionDays", 30),
-    builder.Configuration.GetValue<int>("Logging:CleanupHour", 3));
+        builder.Configuration.GetValue<int>("Logging:RetentionDays", 30),
+        builder.Configuration.GetValue<int>("Logging:CleanupHour", 3));
 
     await app.RunAsync();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "❌ La aplicación terminó unexpectedly");
+    Log.Fatal(ex, "❌ La aplicación terminó inesperadamente");
     throw;
 }
 finally

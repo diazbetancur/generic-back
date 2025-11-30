@@ -1,44 +1,91 @@
 namespace CC.Domain.Dtos
 {
+  /// <summary>
+  /// DTO para permiso
+  /// </summary>
+  public class PermissionDto
+  {
     /// <summary>
-    /// DTO para permiso
+    /// ID del permiso
     /// </summary>
-    public class PermissionDto : BaseDto<Guid>
-    {
-        /// <summary>
-        /// Nombre ˙nico del permiso
-        /// </summary>
-        public string Name { get; set; } = string.Empty;
-
-        /// <summary>
-        /// MÛdulo al que pertenece
-        /// </summary>
-        public string Module { get; set; } = string.Empty;
-
-        /// <summary>
-        /// DescripciÛn del permiso
-        /// </summary>
-        public string Description { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Indica si est· activo
-        /// </summary>
-        public bool IsActive { get; set; }
-    }
+    public Guid Id { get; set; }
 
     /// <summary>
-    /// DTO agrupado por mÛdulo (para frontend)
+    /// Nombre √∫nico del permiso
     /// </summary>
-    public class PermissionsByModuleDto
-    {
-        /// <summary>
-        /// Nombre del mÛdulo
-        /// </summary>
-        public string Module { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Lista de permisos del mÛdulo
-        /// </summary>
-        public List<PermissionDto> Permissions { get; set; } = new();
-    }
+    /// <summary>
+    /// M√≥dulo al que pertenece
+    /// </summary>
+    public string Module { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Descripci√≥n del permiso
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Indica si est√° activo
+    /// </summary>
+    public bool IsActive { get; set; }
+  }
+
+  /// <summary>
+  /// DTO agrupado por m√≥dulo (para frontend)
+  /// </summary>
+  public class PermissionsByModuleDto
+  {
+    /// <summary>
+    /// Nombre del m√≥dulo
+    /// </summary>
+    public string Module { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Lista de permisos del m√≥dulo
+    /// </summary>
+    public List<PermissionDto> Permissions { get; set; } = new();
+  }
+
+  /// <summary>
+  /// Request para crear un permiso
+  /// </summary>
+  public class CreatePermissionRequest
+  {
+    /// <summary>
+    /// Nombre √∫nico del permiso (requerido)
+    /// </summary>
+    public required string Name { get; set; }
+
+    /// <summary>
+    /// M√≥dulo al que pertenece (requerido)
+    /// </summary>
+    public required string Module { get; set; }
+
+    /// <summary>
+    /// Descripci√≥n del permiso (opcional)
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// Indica si est√° activo (por defecto true)
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+  }
+
+  /// <summary>
+  /// Request para actualizar un permiso
+  /// </summary>
+  public class UpdatePermissionRequest
+  {
+    /// <summary>
+    /// Descripci√≥n del permiso
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// Indica si est√° activo
+    /// </summary>
+    public bool? IsActive { get; set; }
+  }
 }

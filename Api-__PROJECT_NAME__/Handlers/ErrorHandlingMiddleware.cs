@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 
-namespace Api_Portar_Paciente.Handlers
+namespace Api___PROJECT_NAME__.Handlers
 {
     /// <summary>
     /// Middleware para manejo centralizado de excepciones con logging estructurado

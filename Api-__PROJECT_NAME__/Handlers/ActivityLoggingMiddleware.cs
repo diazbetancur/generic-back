@@ -1,7 +1,7 @@
 ﻿using CC.Infrastructure.Configurations;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace Api_Portar_Paciente.Handlers
+namespace Api___PROJECT_NAME__.Handlers
 {
     public class ActivityLoggingMiddleware
     {

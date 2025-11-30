@@ -1,7 +1,7 @@
 namespace CC.Domain.Entities
 {
     /// <summary>
-    /// Relación muchos a muchos entre Roles y Permisos
+    /// Relaciï¿½n muchos a muchos entre Roles y Permisos
     /// </summary>
     public class RolePermission : EntityBase<Guid>
     {
@@ -13,7 +13,7 @@ namespace CC.Domain.Entities
         /// <summary>
         /// Rol asociado
         /// </summary>
-        public virtual Role Role { get; set; } = null!;
+        public virtual Role Role { get; set; }
 
         /// <summary>
         /// ID del permiso
@@ -23,6 +23,6 @@ namespace CC.Domain.Entities
         /// <summary>
         /// Permiso asociado
         /// </summary>
-        public virtual Permission Permission { get; set; } = null!;
+        public virtual Permission Permission { get; set; }
     }
 }

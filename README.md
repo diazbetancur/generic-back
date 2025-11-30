@@ -1,1072 +1,317 @@
-# ?? Portal Pacientes API - Fundaci�n Cardioinfantil
+# 🏗️ __PROJECT_NAME__ - Clean Architecture .NET Template
 
-API REST backend para el Portal de Pacientes de la Fundaci�n Cardioinfantil - LaCardio, dise�ada para proporcionar servicios digitales a pacientes y gesti�n administrativa del portal.
-
----
-
-## ?? Descripci�n General del Proyecto
-
-### Prop�sito
-El **Portal Pacientes API** es una plataforma backend que centraliza la gesti�n de servicios digitales para pacientes de la Fundaci�n Cardioinfantil, incluyendo:
-
-- Autenticaci�n y autorizaci�n de pacientes y usuarios administrativos
-- Gesti�n de solicitudes y PQRS
-- Integraci�n con servicios m�dicos externos (citas, historia cl�nica, hospitalizaciones, im�genes diagn�sticas)
-- Administraci�n de contenido (FAQs, CardioTV, encuestas)
-- Telemetr�a y reportes
-- Notificaciones por email y SMS
-
-### Problema que Resuelve
-- **Pacientes**: Acceso digital a informaci�n m�dica, gesti�n de citas, solicitudes y consultas desde un �nico portal
-- **Administradores**: Gesti�n centralizada de usuarios, contenido, solicitudes y seguimiento de actividad
-- **Personal m�dico**: Acceso controlado a informaci�n de pacientes y gesti�n de solicitudes
-
-### P�blico Objetivo
-- **Pacientes** de la Fundaci�n Cardioinfantil
-- **Personal administrativo** del hospital
-- **Equipo de soporte** t�cnico y m�dico
-
-### Resumen Funcional
-API REST construida con **.NET 8** siguiendo arquitectura **Clean Architecture** con capas de Domain, Application, Infrastructure y Presentation. Implementa autenticaci�n JWT, autorizaci�n basada en permisos granulares, integraci�n con m�ltiples APIs externas y sistema completo de auditor�a y telemetr�a.
+A production-ready .NET 8 Web API template following Clean Architecture principles, SOLID design patterns, and industry best practices.
 
 ---
 
-## ??? Arquitectura del Backend
+## 🎯 Features
 
-### Arquitectura General
-El proyecto sigue los principios de **Clean Architecture** con separaci�n en capas:
+### Core Architecture
+- ✅ **Clean Architecture** with clear separation of concerns (Domain, Application, Infrastructure, API)
+- ✅ **SOLID Principles** implementation throughout the codebase
+- ✅ **Repository Pattern** with Unit of Work
+- ✅ **Dependency Injection** with built-in .NET DI container
+- ✅ **AutoMapper** for object-to-object mapping
 
-```
-???????????????????????????????????????????????????????????????
-?                    API Layer (Presentation)                 ?
-?           Controllers + Middleware + Handlers               ?
-???????????????????????????????????????????????????????????????
-                   ?
-???????????????????????????????????????????????????????????????
-?              Application Layer (CC.Aplication)              ?
-?                  Services + Business Logic                  ?
-???????????????????????????????????????????????????????????????
-                   ?
-???????????????????????????????????????????????????????????????
-?               Domain Layer (CC.Domain)                      ?
-?      Entities + DTOs + Interfaces + Constants               ?
-???????????????????????????????????????????????????????????????
-                   ?
-???????????????????????????????????????????????????????????????
-?          Infrastructure Layer (CC.Infrastructure)           ?
-?    Repositories + DB Context + External Services            ?
-???????????????????????????????????????????????????????????????
-```
+### Security & Authentication
+- 🔐 **JWT Bearer Authentication** with customizable token lifetime
+- 🔐 **ASP.NET Core Identity** for user management
+- 🔐 **Permission-based Authorization** with granular access control
+- 🔐 **Rate Limiting** (AspNetCoreRateLimit)
+- 🔐 **Password Policies** (complexity, lockout, etc.)
 
-### Diagrama de Arquitectura
+### Logging & Monitoring
+- 📊 **Serilog** for structured logging
+- 📊 **Health Checks** with custom application checks
+- 📊 **Activity Logging Middleware** for audit trails
+- 📊 **Telemetry** for user activity tracking
+- 📊 **Automatic Log Cleanup** service
 
-```mermaid
-graph TB
-    subgraph "Cliente"
-        WEB[Web App]
-        MOBILE[Mobile App]
-    end
+### API Documentation
+- 📚 **Swagger/OpenAPI** with JWT authentication integration
+- 📚 **XML Documentation** support for all endpoints
 
-    subgraph "API Layer"
-        CONTROLLERS[Controllers]
-        MIDDLEWARE[Middleware]
-        AUTH[Auth JWT]
-    end
+### Database & Persistence
+- 💾 **Entity Framework Core 8** with SQL Server
+- 💾 **Automatic Migrations** on startup
+- 💾 **Database Seeding** for initial data
+- 💾 **Audit Trail** with automatic tracking of entity changes
+- 💾 **Soft Delete** pattern implementation
 
-    subgraph "Application Layer"
-        SERVICES[Services]
-        VALIDATORS[Validators]
-    end
-
-    subgraph "Domain Layer"
-        ENTITIES[Entities]
-        INTERFACES[Interfaces]
-        DTOS[DTOs]
-    end
-
-    subgraph "Infrastructure Layer"
-        REPOS[Repositories]
-        DBCONTEXT[DB Context]
-        EXTERNAL[External Services]
-    end
-
-    subgraph "Persistencia"
-        SQLSERVER[(SQL Server)]
-    end
-
-    subgraph "Servicios Externos"
-        APPOINTMENTS[API Citas]
-        CLINICAL[API Historia Cl�nica]
-        HOSPITALIZATIONS[API Hospitalizaciones]
-        NILREAD[NilRead - Im�genes]
-        XERO[Xero Viewer]
-        EMAIL[Graph Email API]
-        SMS[Liwa SMS API]
-    end
-
-    WEB --> CONTROLLERS
-    MOBILE --> CONTROLLERS
-    CONTROLLERS --> MIDDLEWARE
-    MIDDLEWARE --> AUTH
-    AUTH --> SERVICES
-    SERVICES --> REPOS
-    REPOS --> DBCONTEXT
-    DBCONTEXT --> SQLSERVER
-    SERVICES --> EXTERNAL
-    EXTERNAL --> APPOINTMENTS
-    EXTERNAL --> CLINICAL
-    EXTERNAL --> HOSPITALIZATIONS
-    EXTERNAL --> NILREAD
-    EXTERNAL --> XERO
-    EXTERNAL --> EMAIL
-    EXTERNAL --> SMS
-```
-
-### Flujo de Petici�n-Respuesta
-
-```mermaid
-sequenceDiagram
-    participant Client as Cliente
-    participant API as API Gateway
-    participant Auth as Autenticaci�n
-    participant Service as Service Layer
-    participant Repo as Repository
-    participant DB as SQL Server
-    participant Ext as API Externa
-
-    Client->>API: HTTP Request
-    API->>Auth: Validar JWT Token
-    Auth->>API: Usuario Autenticado
-    API->>Service: Ejecutar L�gica de Negocio
-    Service->>Repo: Consultar/Modificar Datos
-    Repo->>DB: Query SQL
-    DB->>Repo: Resultado
-    Service->>Ext: Llamar API Externa (si aplica)
-    Ext->>Service: Respuesta Externa
-    Service->>API: DTO de Respuesta
-    API->>Client: HTTP Response (JSON)
-```
-
-### M�dulos Principales
-
-| M�dulo | Descripci�n | Endpoints |
-|--------|-------------|-----------|
-| **Autenticaci�n** | Login pacientes/admin, OTP, recuperaci�n contrase�a | `/api/Auth/*` |
-| **Solicitudes** | Gesti�n de PQRS y solicitudes de pacientes | `/api/Request/*` |
-| **Usuarios** | Administraci�n de usuarios y roles | `/api/Admin/Users/*` |
-| **Permisos** | Control de acceso granular | `/api/Admin/Permissions/*` |
-| **Citas** | Consulta de citas m�dicas | `/api/Appointments/*` |
-| **Historia Cl�nica** | Acceso a episodios m�dicos y PDFs | `/api/ClinicalHistory/*` |
-| **Hospitalizaciones** | Consulta de hospitalizaciones | `/api/Hospitalizations/*` |
-| **Im�genes Diagn�sticas** | Acceso a ex�menes y reportes (NilRead/Xero) | `/api/NilRead/*`, `/api/Xero/*` |
-| **Contenido** | FAQs, CardioTV, encuestas | `/api/FrecuentQuestions/*`, `/api/CardioTV/*` |
-| **Notificaciones** | Preferencias de notificaci�n | `/api/Notification/*` |
-| **Telemetr�a** | Logs de actividad y m�tricas | `/api/Telemetry/*` |
-| **Reportes** | Generaci�n de reportes administrativos | `/api/Reports/*` |
+### Additional Features
+- ⚡ **CORS** configuration
+- ⚡ **Background Services** (log cleanup, session management)
+- ⚡ **Error Handling Middleware** with standardized responses
+- ⚡ **Session Heartbeat** for active user tracking
+- ⚡ **Environment-specific** configurations
 
 ---
 
-## ?? Estructura del Proyecto
+## 📋 Prerequisites
 
-```
-PortalPacientes/
-?
-??? Api-Portar-Paciente/              # ?? Capa de Presentaci�n (API REST)
-?   ??? Controllers/                  # Controladores REST
-?   ?   ??? AuthController.cs        # Autenticaci�n JWT + OTP
-?   ?   ??? RequestController.cs     # Gesti�n de solicitudes
-?   ?   ??? Admin/                   # Controladores administrativos
-?   ?   ?   ??? UsersController.cs
-?   ?   ?   ??? RolesController.cs
-?   ?   ?   ??? PermissionsController.cs
-?   ?   ??? AppointmentsController.cs
-?   ?   ??? ClinicalHistoryController.cs
-?   ?   ??? HospitalizationsController.cs
-?   ?   ??? NilReadController.cs
-?   ?   ??? XeroController.cs
-?   ??? Handlers/                    # Middleware y manejo de errores
-?   ?   ??? ErrorHandlingMiddleware.cs
-?   ?   ??? SessionHeartbeatMiddleware.cs
-?   ?   ??? DependencyInyectionHandler.cs
-?   ??? Configuration/               # Configuraci�n de pol�ticas
-?   ?   ??? AuthorizationPoliciesConfiguration.cs
-?   ??? HealthChecks/               # Health checks personalizados
-?   ??? Services/                   # Servicios de background
-?   ?   ??? LogCleanupService.cs
-?   ?   ??? AuthCleanupService.cs
-?   ??? Program.cs                  # Punto de entrada y configuraci�n
-?   ??? appsettings.json           # Configuraci�n de la aplicaci�n
-?
-??? CC.Domain/                       # ?? Capa de Dominio
-?   ??? Entities/                   # Entidades del negocio
-?   ?   ??? User.cs
-?   ?   ??? Role.cs
-?   ?   ??? Permission.cs
-?   ?   ??? Request.cs
-?   ?   ??? Notification.cs
-?   ?   ??? ...
-?   ??? Dtos/                      # Data Transfer Objects
-?   ?   ??? AuthDtos.cs
-?   ?   ??? RequestDto.cs
-?   ?   ??? UserManagementDto.cs
-?   ?   ??? ...
-?   ??? Interfaces/                # Contratos de servicios y repositorios
-?   ?   ??? Services/
-?   ?   ??? Repositories/
-?   ?   ??? External/             # Interfaces para APIs externas
-?   ??? Constants/                # Constantes del sistema
-?   ?   ??? PermissionConstants.cs
-?   ??? Enums/                   # Enumeraciones
-?   ??? AutoMapperProfile.cs     # Configuraci�n de mapeo de objetos
-?
-??? CC.Aplication/                  # ?? Capa de Aplicaci�n
-?   ??? Services/                  # Implementaci�n de l�gica de negocio
-?   ?   ??? ServiceBase.cs        # Servicio gen�rico CRUD
-?   ?   ??? AuthVerifyService.cs  # Verificaci�n de autenticaci�n
-?   ?   ??? RequestService.cs     # L�gica de solicitudes
-?   ?   ??? NotificationService.cs
-?   ?   ??? ...
-?   ??? Utils/                    # Utilidades
-?       ??? JwtTokenGenerator.cs  # Generaci�n de tokens JWT
-?
-??? CC.Infrastructure/             # ?? Capa de Infraestructura
-    ??? Configurations/           # Configuraci�n de EF Core
-    ?   ??? DBContext.cs         # Contexto de base de datos
-    ?   ??? SeedDB.cs           # Datos iniciales
-    ?   ??? AuditingSaveChangesInterceptor.cs
-    ??? Repositories/            # Implementaci�n de repositorios
-    ?   ??? ERepositoryBase.cs  # Repositorio gen�rico
-    ?   ??? RequestRepository.cs
-    ?   ??? ...
-    ??? External/               # Integraciones con APIs externas
-    ?   ??? Appointments/
-    ?   ??? ClinicalHistory/
-    ?   ??? Hospitalizations/
-    ?   ??? NilRead/
-    ?   ??? Xero/
-    ?   ??? Email/
-    ?   ??? Sms/
-    ??? Authorization/          # Autorizaci�n basada en permisos
-    ?   ??? PermissionHandler.cs
-    ?   ??? PermissionRequirement.cs
-    ??? Migrations/            # Migraciones de base de datos
-```
-
-### Descripci�n de Carpetas Principales
-
-| Carpeta | Prop�sito |
-|---------|-----------|
-| **Controllers** | Endpoints REST expuestos al cliente |
-| **Services** | L�gica de negocio y orquestaci�n |
-| **Repositories** | Acceso a datos con Entity Framework Core |
-| **Entities** | Modelos del dominio mapeados a tablas SQL |
-| **DTOs** | Objetos para transferencia de datos (Request/Response) |
-| **External** | Clientes HTTP para consumir APIs externas |
-| **Handlers** | Middleware personalizado y manejo de errores |
-| **Migrations** | Cambios incrementales del esquema de base de datos |
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or higher
+- [SQL Server 2019+](https://www.microsoft.com/sql-server) or SQL Server Express
+- [Visual Studio 2022](https://visualstudio.microsoft.com/) / [VS Code](https://code.visualstudio.com/) / [Rider](https://www.jetbrains.com/rider/)
+- [Git](https://git-scm.com/)
 
 ---
 
-## ?? Tecnolog�as Utilizadas
+## 🚀 Quick Start
 
-### Stack Principal
-
-| Tecnolog�a | Versi�n | Prop�sito |
-|------------|---------|-----------|
-| **.NET** | 8.0 | Framework principal |
-| **ASP.NET Core** | 8.0 | API REST |
-| **Entity Framework Core** | 8.0.20 | ORM para SQL Server |
-| **SQL Server** | Latest | Base de datos relacional |
-| **AutoMapper** | 12.0.1 | Mapeo objeto a objeto |
-| **Serilog** | 4.3.0 | Logging estructurado |
-
-### Seguridad y Autenticaci�n
-
-| Librer�a | Prop�sito |
-|----------|-----------|
-| **ASP.NET Core Identity** | Gesti�n de usuarios y roles |
-| **JWT Bearer** (8.0.20) | Autenticaci�n con tokens JWT |
-| **AspNetCoreRateLimit** (5.0.0) | Rate limiting por IP |
-
-### Documentaci�n y Monitoreo
-
-| Librer�a | Prop�sito |
-|----------|-----------|
-| **Swashbuckle (Swagger)** (6.6.2) | Documentaci�n OpenAPI |
-| **HealthChecks** (8.0.x) | Monitoreo de salud del sistema |
-| **Serilog.Sinks.File** | Logs persistentes en archivos |
-
-### Integraciones Externas
-
-- **Microsoft Graph API** - Env�o de emails corporativos
-- **Liwa SMS API** - Env�o de mensajes SMS
-- **APIs Internas Cardioinfantil**:
-  - Appointments API (Citas m�dicas)
-  - Clinical History API (Historia cl�nica)
-  - Hospitalizations API (Hospitalizaciones)
-  - NilRead API (Im�genes diagn�sticas)
-  - Xero Viewer (Visor de im�genes DICOM)
-
----
-
-## ?? Instalaci�n y Configuraci�n
-
-### Requisitos Previos
-
-- **.NET 8 SDK** o superior ? [Descargar aqu�](https://dotnet.microsoft.com/download/dotnet/8.0)
-- **SQL Server 2019+** o **SQL Server Express**
-- **Visual Studio 2022** (opcional, recomendado) o **VS Code**
-- **Git** para clonar el repositorio
-- **Postman** o **Thunder Client** para probar endpoints (opcional)
-
-### 1?? Clonar el Repositorio
+### 1️⃣ Clone or Use Template
 
 ```bash
-git clone https://github.com/clotheme/cardio-back.git
-cd cardio-back/PortalPacientes
+# Clone this repository
+git clone <your-repository-url>
+cd __PROJECT_NAME__
+
+# Or use as GitHub template
+# Click "Use this template" button on GitHub
 ```
 
-### 2?? Restaurar Dependencias
+### 2️⃣ Customize Project Names
+
+Run the setup script to replace placeholders with your project name:
 
 ```bash
-dotnet restore
+# Windows (PowerShell)
+.\setup-project.ps1 -ProjectName "YourProjectName"
+
+# Linux/macOS
+./setup-project.sh "YourProjectName"
 ```
 
-### 3?? Configurar Base de Datos
+This will replace all occurrences of `__PROJECT_NAME__` with your actual project name.
 
-#### Crear la base de datos en SQL Server
+### 3️⃣ Configure Database
 
-```sql
-CREATE DATABASE PortalPacientesDB;
-GO
-```
-
-#### Configurar cadena de conexi�n
-
-Editar `Api-Portar-Paciente/appsettings.Development.json`:
+Update the connection string in `Api-YourProjectName/appsettings.Development.json`:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=PortalPacientesDB;User Id=tu_usuario;Password=tu_contrase�a;TrustServerCertificate=True;"
+    "DefaultConnection": "Server=localhost;Database=YourDatabase;User Id=youruser;Password=yourpassword;TrustServerCertificate=True;"
   }
 }
 ```
 
-#### Aplicar migraciones
+### 4️⃣ Configure JWT Secret
+
+Generate a secure JWT secret (minimum 32 characters):
 
 ```bash
-cd Api-Portar-Paciente
-dotnet ef database update --project ../CC.Infrastructure
+# PowerShell
+-join ((65..90) + (97..122) + (48..57) | Get-Random -Count 32 | ForEach-Object {[char]$_})
+
+# Linux/macOS
+openssl rand -base64 32
 ```
 
-> **Nota**: Las migraciones se ejecutan autom�ticamente al iniciar la aplicaci�n, pero puedes ejecutarlas manualmente con el comando anterior.
-
-### 4?? Configurar Variables de Entorno
-
-Crear archivo `appsettings.Development.json` (NO commitear este archivo):
+Update `appsettings.Development.json`:
 
 ```json
 {
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=PortalPacientesDB;..."
-  },
   "Authentication": {
-    "JwtSecret": "tu-clave-secreta-muy-segura-minimo-32-caracteres",
-    "Issuer": "PortalPacientesAPI",
-    "Audience": "PortalPacientesClients",
-    "TokenLifetimeMinutes": 60
-  },
-  "ExternalServices": {
-    "Appointments": {
-      "BaseUrl": "http://localhost:5003",
-      "ApiKey": "api-key-appointments"
-    },
-    "ClinicalHistory": {
-      "BaseUrl": "http://localhost:5002",
-      "ApiKey": "api-key-clinical-history"
-    },
-    "Email": {
-      "TenantId": "tu-tenant-id",
-      "ClientId": "tu-client-id",
-      "ClientSecret": "tu-client-secret"
-    },
-    "Sms": {
-      "Account": "tu-cuenta-liwa",
-      "Password": "tu-password-liwa",
-      "LiwaApiKey": "tu-api-key-liwa"
-    }
-  },
-  "Logging": {
-    "RetentionDays": 30,
-    "CleanupHour": 3
+    "JwtSecret": "your-generated-secret-here",
+    "Issuer": "YourProjectAPI",
+    "Audience": "YourProjectClients"
   }
 }
 ```
 
-### 5?? Datos Iniciales (Seed)
-
-Al iniciar la aplicaci�n por primera vez, se crean autom�ticamente:
-
-- **Usuario Admin**: `admin` / `4dm1nC4rd10.*`
-- **Rol SuperAdmin** con todos los permisos
-- **Tipos de documento** (CC, TI, CE, RC, PP)
-- **Estados de solicitudes** (Recibida, En Proceso, Completada, etc.)
-- **45 permisos granulares** del sistema
-
----
-
-## ?? Ejecuci�n y Uso del Backend
-
-### Iniciar en Modo Desarrollo
+### 5️⃣ Run the Application
 
 ```bash
-cd Api-Portar-Paciente
+cd Api-YourProjectName
+dotnet restore
 dotnet run
 ```
 
-O con hot reload:
+Or with hot reload:
 
 ```bash
 dotnet watch run
 ```
 
-La API estar� disponible en:
+The API will be available at:
 - **HTTPS**: `https://localhost:7149`
 - **HTTP**: `http://localhost:5149`
-- **Swagger UI**: `https://localhost:7149/swagger`
+- **Swagger**: `https://localhost:7149/swagger`
 
-### Health Checks
+### 6️⃣ Test the API
 
-Verificar estado del sistema:
-
-```bash
-# Health check completo
-GET https://localhost:7149/health
-
-# Health check simple (para load balancers)
-GET https://localhost:7149/health/ready
-```
-
-### Probar Endpoints Manualmente
-
-#### 1. Login como Admin
-
-```bash
-POST https://localhost:7149/api/Auth/admin/login
-Content-Type: application/json
-
-{
-  "username": "admin",
-  "password": "4dm1nC4rd10.*"
-}
-```
-
-**Respuesta:**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "userId": "guid-del-usuario",
-  "username": "admin",
-  "email": "servicio.portal@lacardio.org",
-  "roles": ["SuperAdmin"],
-  "expiresAt": "2024-01-15T10:30:00Z"
-}
-```
-
-#### 2. Consultar Solicitudes (con token)
-
-```bash
-GET https://localhost:7149/api/Request?skip=0&take=10
-Authorization: Bearer {tu-token-jwt}
-```
-
-**Respuesta:**
-```json
-{
-  "items": [
-    {
-      "id": "guid",
-      "docNumber": "123456",
-      "description": "Solicitud de copia de historia cl�nica",
-      "state": {
-        "name": "En Proceso",
-        "hexColor": "#FF9800"
-      },
-      "dateCreated": "2024-01-10T14:30:00Z"
-    }
-  ],
-  "totalCount": 25,
-  "hasMore": true
-}
-```
-
-#### 3. Crear Preferencias de Notificaci�n (p�blico)
-
-```bash
-POST https://localhost:7149/api/Notification
-Content-Type: application/json
-
-{
-  "docTypeId": "guid-del-tipo-documento",
-  "docNumber": "123456",
-  "email": true,
-  "sms": false,
-  "noReceiveNotifications": false
-}
-```
-
-#### 4. Consultar Citas M�dicas
-
-```bash
-GET https://localhost:7149/api/Appointments/patient/123456
-Authorization: Bearer {tu-token-jwt}
-```
-
-### Ejemplos con cURL
+Default admin credentials (created automatically on first run):
+- **Username**: `admin`
+- **Password**: `Admin123!*` (change this in `SeedDB.cs`)
 
 ```bash
 # Login
 curl -X POST https://localhost:7149/api/Auth/admin/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"4dm1nC4rd10.*"}'
-
-# Consultar solicitudes
-curl -X GET "https://localhost:7149/api/Request?skip=0&take=10" \
-  -H "Authorization: Bearer {token}"
-```
-
-### Swagger UI
-
-Acceder a la documentaci�n interactiva:
-
-```
-https://localhost:7149/swagger
-```
-
-Desde Swagger puedes:
-- ? Ver todos los endpoints disponibles
-- ? Probar requests directamente desde el navegador
-- ? Ver esquemas de request/response
-- ? Autenticar con JWT usando el bot�n "Authorize"
-
----
-
-## ?? Buenas Pr�cticas del Proyecto
-
-### Convenciones de Nombres
-
-#### Entidades y DTOs
-```csharp
-// ? Correcto
-public class Request { }
-public class RequestDto { }
-public class RequestCreateDto { }
-
-// ? Incorrecto
-public class request { }
-public class RequestDtoModel { }
-```
-
-#### Controladores
-```csharp
-// ? Correcto
-[Route("api/[controller]")]
-public class RequestController : ControllerBase { }
-
-// Nomenclatura de m�todos
-[HttpGet("{id}")]
-public async Task<IActionResult> GetById(Guid id) { }
-```
-
-#### Servicios
-```csharp
-// ? Correcto
-public interface IRequestService { }
-public class RequestService : ServiceBase<Request, RequestDto>, IRequestService { }
-```
-
-### Organizaci�n de C�digo
-
-#### Estructura de un Controlador
-```csharp
-[ApiController]
-[Route("api/[controller]")]
-[Authorize] // Autenticaci�n requerida por defecto
-public class MiControlador : ControllerBase
-{
-    private readonly IMiServicio _servicio;
-    private readonly ILogger<MiControlador> _logger;
-
-    public MiControlador(IMiServicio servicio, ILogger<MiControlador> logger)
-    {
-        _servicio = servicio;
-        _logger = logger;
-    }
-
-    /// <summary>
-    /// Descripci�n del endpoint
-    /// </summary>
-    [HttpGet]
-    [AllowAnonymous] // Si es p�blico
-    [ProducesResponseType(typeof(MiDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Get()
-    {
-        try
-        {
-            var result = await _servicio.GetAllAsync();
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error al obtener datos");
-            return StatusCode(500, new { error = "Error interno" });
-        }
-    }
-}
-```
-
-### Crear Nuevas Rutas
-
-#### 1. Crear entidad en `CC.Domain/Entities/`
-```csharp
-public class MiEntidad : EntityBase<Guid>
-{
-    public string Nombre { get; set; }
-    // ... propiedades
-}
-```
-
-#### 2. Crear DTO en `CC.Domain/Dtos/`
-```csharp
-public class MiEntidadDto : BaseDto<Guid>
-{
-    public string Nombre { get; set; }
-}
-```
-
-#### 3. Agregar mapeo en `AutoMapperProfile.cs`
-```csharp
-CreateMap<MiEntidad, MiEntidadDto>().ReverseMap();
-```
-
-#### 4. Crear interface del repositorio en `CC.Domain/Interfaces/Repositories/`
-```csharp
-public interface IMiEntidadRepository : IERepositoryBase<MiEntidad> { }
-```
-
-#### 5. Implementar repositorio en `CC.Infrastructure/Repositories/`
-```csharp
-public class MiEntidadRepository : ERepositoryBase<MiEntidad>, IMiEntidadRepository
-{
-    public MiEntidadRepository(IQueryableUnitOfWork unitOfWork) : base(unitOfWork) { }
-}
-```
-
-#### 6. Crear interface del servicio en `CC.Domain/Interfaces/Services/`
-```csharp
-public interface IMiEntidadService : IServiceBase<MiEntidad, MiEntidadDto> { }
-```
-
-#### 7. Implementar servicio en `CC.Aplication/Services/`
-```csharp
-public class MiEntidadService : ServiceBase<MiEntidad, MiEntidadDto>, IMiEntidadService
-{
-    public MiEntidadService(
-        IMiEntidadRepository repository,
-        IMapper mapper,
-        ILogger<MiEntidadService> logger) 
-        : base(repository, mapper, logger)
-    {
-    }
-}
-```
-
-#### 8. Registrar dependencias en `DependencyInyectionHandler.cs`
-```csharp
-// En RegisterCoreServices
-services.AddScoped<IMiEntidadService, MiEntidadService>();
-
-// En RepositoryRegistration
-services.AddScoped<IMiEntidadRepository, MiEntidadRepository>();
-```
-
-#### 9. Crear controlador en `Api-Portar-Paciente/Controllers/`
-```csharp
-[ApiController]
-[Route("api/[controller]")]
-public class MiEntidadController : ControllerBase
-{
-    private readonly IMiEntidadService _servicio;
-    
-    // ... implementaci�n
-}
-```
-
-### Documentar Endpoints
-
-Usar comentarios XML para documentaci�n en Swagger:
-
-```csharp
-/// <summary>
-/// Obtiene todas las solicitudes con filtros opcionales
-/// </summary>
-/// <param name="skip">Registros a saltar (paginaci�n)</param>
-/// <param name="take">Registros a tomar (m�ximo 100)</param>
-/// <returns>Lista paginada de solicitudes</returns>
-/// <remarks>
-/// Ejemplo de request:
-/// 
-///     GET /api/Request?skip=0&take=10
-///     
-/// </remarks>
-/// <response code="200">Solicitudes obtenidas exitosamente</response>
-/// <response code="401">No autenticado</response>
-/// <response code="403">Sin permisos</response>
-[HttpGet]
-[Authorize(Policy = PermissionConstants.Policies.CanViewRequests)]
-[ProducesResponseType(typeof(IEnumerable<RequestDto>), StatusCodes.Status200OK)]
-public async Task<IActionResult> GetAll([FromQuery] int skip = 0, [FromQuery] int take = 10)
-{
-    // ...
-}
-```
-
-### Convenciones de Commits
-
-Seguir **Conventional Commits**:
-
-```bash
-# Features
-git commit -m "feat: agregar endpoint para consultar historial m�dico"
-
-# Fixes
-git commit -m "fix: corregir error en validaci�n de OTP"
-
-# Refactor
-git commit -m "refactor: optimizar consultas de base de datos en RequestService"
-
-# Documentaci�n
-git commit -m "docs: actualizar README con instrucciones de deployment"
-
-# Tests (cuando se implementen)
-git commit -m "test: agregar pruebas unitarias para AuthService"
-
-# Chore
-git commit -m "chore: actualizar dependencias de NuGet"
-```
-
-### Reglas del Equipo
-
-1. ? **Nunca** commitear `appsettings.Development.json` con credenciales reales
-2. ? Usar `async/await` en todos los m�todos que acceden a BD o APIs
-3. ? Siempre validar entrada de usuarios con `ModelState`
-4. ? Loggear errores con `ILogger` en todos los catch blocks
-5. ? Usar DTOs para request/response, nunca exponer entidades directamente
-6. ? Aplicar autorizaci�n con `[Authorize]` o pol�ticas espec�ficas
-7. ? Documentar endpoints p�blicos con comentarios XML
-8. ? Hacer code review antes de mergear a `develop`
-
----
-
-## ?? Seguridad B�sica
-
-### Autenticaci�n JWT
-
-El sistema usa **JWT Bearer tokens** con las siguientes caracter�sticas:
-
-- **Algoritmo**: HS256 (HMAC-SHA256)
-- **Tiempo de vida**: Configurable (default 60 minutos)
-- **Claims incluidos**: `userId`, `email`, `roles`, `permissions`
-- **Refresh tokens**: No implementados a�n
-
-### Autorizaci�n Basada en Permisos
-
-El sistema implementa **autorizaci�n granular** con 45 permisos:
-
-```csharp
-// Ejemplo de uso en controladores
-[Authorize(Policy = PermissionConstants.Policies.CanViewRequests)]
-public async Task<IActionResult> GetRequests() { }
-
-[Authorize(Policy = PermissionConstants.Policies.CanManageUsers)]
-public async Task<IActionResult> CreateUser() { }
-```
-
-### Protecci�n de Endpoints
-
-#### Middleware de Rate Limiting
-```json
-{
-  "IpRateLimiting": {
-    "EnableEndpointRateLimiting": true,
-    "RealIpHeader": "X-Real-IP",
-    "GeneralRules": [
-      {
-        "Endpoint": "*",
-        "Period": "1m",
-        "Limit": 100
-      }
-    ]
-  }
-}
-```
-
-#### Validaci�n de Entrada
-```csharp
-[HttpPost]
-public async Task<IActionResult> Create([FromBody] MiDto dto)
-{
-    if (!ModelState.IsValid)
-        return BadRequest(ModelState);
-    
-    // ... l�gica
-}
-```
-
-### Manejo de Credenciales
-
-**? HACER:**
-- Usar variables de entorno para credenciales
-- Guardar secrets en Azure Key Vault o similar
-- Usar `appsettings.Development.json` (gitignored)
-- Rotar API keys peri�dicamente
-
-**? NO HACER:**
-- Commitear credenciales en c�digo
-- Hardcodear passwords
-- Compartir API keys por email/chat
-- Usar mismo password en dev y producci�n
-
-### Auditor�a
-
-El sistema registra autom�ticamente:
-- ? Intentos de login (exitosos y fallidos)
-- ? Cambios en entidades cr�ticas (auditor�a con interceptor)
-- ? Accesos a documentos m�dicos (telemetr�a)
-- ? Operaciones administrativas (logs)
-
----
-
-## ?? FAQ T�cnica
-
-### �C�mo agregar un nuevo m�dulo completo?
-
-Sigue el proceso descrito en "Crear Nuevas Rutas" (punto 7.3), que incluye:
-1. Crear entidad en Domain
-2. Crear DTO
-3. Agregar mapeo AutoMapper
-4. Crear interfaces de repositorio y servicio
-5. Implementar repositorio y servicio
-6. Registrar en DI
-7. Crear controlador
-
-### �C�mo conectarse a otra base de datos?
-
-Cambiar la cadena de conexi�n en `appsettings.json`:
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=nuevo-servidor;Database=nueva-db;..."
-  }
-}
-```
-
-Y ejecutar migraciones:
-```bash
-dotnet ef database update
-```
-
-### �C�mo agregar una nueva API externa?
-
-1. Crear DTOs en `CC.Domain/Dtos/ExternalApis/`
-2. Crear interface en `CC.Domain/Interfaces/External/`
-3. Crear opciones en `CC.Infrastructure/External/TuApi/TuApiOptions.cs`
-4. Implementar servicio en `CC.Infrastructure/External/TuApi/TuApiService.cs`
-5. Registrar HttpClient en `DependencyInyectionHandler.ConfigureOptions`
-6. Crear controlador en `Api-Portar-Paciente/Controllers/`
-
-### �C�mo extender el sistema de permisos?
-
-1. Agregar constante en `PermissionConstants.cs`:
-```csharp
-public static class MiModulo
-{
-    public const string View = "MiModulo.View";
-    public const string Create = "MiModulo.Create";
-}
-```
-
-2. Agregar pol�tica en `AuthorizationPoliciesConfiguration.cs`:
-```csharp
-options.AddPolicy("CanViewMiModulo", policy =>
-    policy.AddRequirements(new PermissionRequirement("MiModulo.View")));
-```
-
-3. Agregar permisos en `SeedDB.EnsurePermissions()`:
-```csharp
-new Permission { 
-    Name = "MiModulo.View", 
-    Module = "MiModulo", 
-    Description = "Ver mi m�dulo" 
-}
-```
-
-4. Usar en controladores:
-```csharp
-[Authorize(Policy = "CanViewMiModulo")]
-```
-
-### �C�mo depurar problemas de autenticaci�n?
-
-1. Verificar que el token JWT sea v�lido en [jwt.io](https://jwt.io)
-2. Revisar logs de Serilog en `logs/log-YYYY-MM-DD.txt`
-3. Verificar claims del usuario:
-```csharp
-var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value);
-```
-4. Verificar configuraci�n JWT en `appsettings.json`
-
-### �C�mo hacer backup de la base de datos?
-
-```sql
--- Backup completo
-BACKUP DATABASE PortalPacientesDB 
-TO DISK = 'C:\Backups\PortalPacientesDB.bak'
-WITH FORMAT, INIT, NAME = 'Full Backup', COMPRESSION;
-
--- Restore
-RESTORE DATABASE PortalPacientesDB 
-FROM DISK = 'C:\Backups\PortalPacientesDB.bak'
-WITH REPLACE;
+  -d '{"username":"admin","password":"Admin123!*"}'
+
+# Access protected endpoint
+curl -X GET https://localhost:7149/api/YourEndpoint \
+  -H "Authorization: Bearer {your-jwt-token}"
 ```
 
 ---
 
-## ?? Informaci�n Adicional
+## 🏛️ Project Structure
 
-### Entidades Principales del Sistema
-
-```mermaid
-erDiagram
-    User ||--o{ Request : creates
-    User ||--o{ Role : has
-    Role ||--o{ RolePermission : has
-    Permission ||--o{ RolePermission : granted_by
-    Request ||--o{ HistoryRequest : has_history
-    Request }o--|| State : has
-    Request }o--|| RequestType : is_type
-    User }o--|| DocType : has
-    Notification }o--|| DocType : has
-    
-    User {
-        Guid Id PK
-        string Email
-        string FirstName
-        string LastName
-        string DocumentNumber
-        Guid DocTypeId FK
-        bool IsDeleted
-    }
-    
-    Request {
-        Guid Id PK
-        Guid DocTypeId FK
-        string DocNumber
-        Guid StateId FK
-        Guid RequestTypeId FK
-        string Description
-        Guid AssignedUserId FK
-        DateTime LastUpdateDate
-    }
-    
-    Permission {
-        Guid Id PK
-        string Name
-        string Module
-        string Description
-        bool IsActive
-    }
-    
-    Notification {
-        Guid Id PK
-        Guid DocTypeId FK
-        string DocNumber
-        bool Email
-        bool SMS
-        bool NoReceiveNotifications
-    }
 ```
-
-### Flujo de Autenticaci�n Paciente (OTP)
-
-```mermaid
-sequenceDiagram
-    participant P as Paciente
-    participant API as API
-    participant DB as Base de Datos
-    participant SMS as Servicio SMS
-    participant Email as Servicio Email
-
-    P->>API: POST /api/Auth/request-otp
-    API->>DB: Buscar paciente por documento
-    DB->>API: Datos del paciente
-    API->>API: Generar c�digo OTP (6 d�gitos)
-    API->>DB: Guardar OTP hasheado
-    
-    alt Tiene Email
-        API->>Email: Enviar OTP por email
-    end
-    
-    alt Tiene SMS
-        API->>SMS: Enviar OTP por SMS
-    end
-    
-    API->>P: {success: true, channels: ["email", "sms"]}
-    
-    P->>API: POST /api/Auth/verify-otp {otp: "123456"}
-    API->>DB: Validar OTP
-    DB->>API: OTP v�lido
-    API->>API: Generar JWT token
-    API->>P: {token: "...", userId: "...", expiresAt: "..."}
+📦 __PROJECT_NAME__
+├── 📂 Api-__PROJECT_NAME__/              # 🌐 Presentation Layer (REST API)
+│   ├── 📂 Controllers/                   # API endpoints
+│   ├── 📂 Handlers/                      # Middleware & DI configuration
+│   ├── 📂 HealthChecks/                  # Custom health checks
+│   ├── 📂 Services/                      # Background services
+│   ├── 📂 Configuration/                 # Authorization policies
+│   └── 📄 Program.cs                     # Application entry point
+│
+├── 📂 __PROJECT_NAME__.Domain/           # 🎯 Domain Layer (Business Logic)
+│   ├── 📂 Entities/                      # Domain entities
+│   ├── 📂 Dtos/                          # Data Transfer Objects
+│   ├── 📂 Interfaces/                    # Service & Repository contracts
+│   ├── 📂 Constants/                     # System constants
+│   ├── 📂 Enums/                         # Enumerations
+│   └── 📄 AutoMapperProfile.cs           # Object mapping configuration
+│
+├── 📂 __PROJECT_NAME__.Application/      # 💼 Application Layer (Use Cases)
+│   ├── 📂 Services/                      # Business logic implementation
+│   ├── 📂 Helpers/                       # Utility classes
+│   └── 📂 Utils/                         # JWT, encryption, etc.
+│
+└── 📂 __PROJECT_NAME__.Infrastructure/   # 🔧 Infrastructure Layer (Data & External Services)
+    ├── 📂 Configurations/                # EF Core context & seeding
+    ├── 📂 Repositories/                  # Data access implementation
+    ├── 📂 Authorization/                 # Permission handlers
+    ├── 📂 External/                      # External API clients
+    └── 📂 Migrations/                    # Database migrations
 ```
-
-### Consideraciones de Rendimiento
-
-- **Paginaci�n**: Todos los endpoints de listado usan `skip` y `take`
-- **AsNoTracking**: Consultas de solo lectura optimizadas
-- **Cach�**: Implementar Redis para datos est�ticos (futuro)
-- **Connection Pooling**: Entity Framework maneja pool autom�ticamente
-- **Rate Limiting**: 100 requests por minuto por IP por defecto
-
-### Logs y Monitoreo
-
-Los logs se guardan en:
-- **Archivos**: `logs/log-YYYY-MM-DD.txt` (retenci�n configurable)
-- **Consola**: Durante desarrollo
-- **Base de datos**: `AuditLogs` y `TelemetryLogs`
-
-Niveles de log:
-- **Debug**: Informaci�n detallada (solo desarrollo)
-- **Information**: Flujo normal de la aplicaci�n
-- **Warning**: Situaciones inusuales pero no cr�ticas
-- **Error**: Errores que requieren atenci�n
-- **Fatal**: Errores cr�ticos que detienen la aplicaci�n
 
 ---
 
-## ?? Soporte y Contacto
+## 📚 Architecture Overview
 
-Para dudas t�cnicas o reportar problemas:
+This template follows **Clean Architecture** (also known as Onion Architecture or Hexagonal Architecture):
 
-- **Equipo de Desarrollo**: desarrollo@cardioinfantil.org
-- **Repositorio**: https://github.com/clotheme/cardio-back
-- **Branch principal**: `develop`
+```
+┌─────────────────────────────────────────────┐
+│          🌐 API Layer (Presentation)        │
+│   Controllers │ Middleware │ Configuration  │
+└────────────────────┬────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────┐
+│      💼 Application Layer (Use Cases)       │
+│      Services │ Validators │ Mappers        │
+└────────────────────┬────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────┐
+│         🎯 Domain Layer (Core Logic)        │
+│   Entities │ DTOs │ Interfaces │ Constants  │
+└────────────────────┬────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────┐
+│    🔧 Infrastructure Layer (Data & I/O)     │
+│   Repositories │ DbContext │ External APIs  │
+└─────────────────────────────────────────────┘
+```
+
+### Dependency Flow
+- **API** → **Application** → **Domain** ← **Infrastructure**
+- Domain has **no dependencies** on other layers
+- Infrastructure depends on **Domain** only
+- Application depends on **Domain** only
+- API depends on all layers (composition root)
 
 ---
 
-**�ltima actualizaci�n**: Enero 2025  
-**Versi�n del API**: 1.0  
-**Versi�n de .NET**: 8.0
+## 🔐 Security Best Practices
+
+### JWT Authentication
+- Tokens are signed with HS256 algorithm
+- Configurable token lifetime (default: 60 minutes)
+- Claims include: UserId, Email, Roles, Permissions
+- Automatic token validation on each request
+
+### Password Policies
+- Minimum 8 characters
+- Requires uppercase, lowercase, digit, and special character
+- Account lockout after 5 failed attempts (5 minutes)
+- Password hashing with ASP.NET Core Identity
+
+### Rate Limiting
+- 100 requests per minute per IP (default)
+- Customizable per endpoint
+- Authentication endpoints have stricter limits
+
+### Authorization
+- Permission-based access control
+- Policy-based authorization
+- Custom authorization handlers
+- Granular permissions (CRUD operations per module)
+
+---
+
+## 🛠️ Configuration
+
+### Environment-Specific Settings
+
+The template supports multiple environments:
+- `appsettings.json` - Base configuration
+- `appsettings.Development.json` - Development overrides
+- `appsettings.Production.json` - Production overrides
+- `appsettings.Staging.json` - Staging overrides (optional)
+
+**⚠️ IMPORTANT**: Never commit `appsettings.Development.json` with real credentials!
+
+---
+
+## 📦 Adding New Features
+
+See [DEVELOPMENT_GUIDE.md](./docs/DEVELOPMENT_GUIDE.md) for detailed instructions on:
+- Creating new entities
+- Adding controllers
+- Implementing services
+- Creating repositories
+- Adding permissions
+- Database migrations
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📞 Support
+
+For questions, issues, or suggestions:
+- Create an issue on GitHub
+- Contact: dev@yourcompany.com
+
+---
+
+## 🙏 Acknowledgments
+
+- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) by Robert C. Martin
+- [ASP.NET Core](https://docs.microsoft.com/aspnet/core) documentation
+- [Entity Framework Core](https://docs.microsoft.com/ef/core/) documentation
+
+---
+
+**Built with ❤️ using Clean Architecture principles**

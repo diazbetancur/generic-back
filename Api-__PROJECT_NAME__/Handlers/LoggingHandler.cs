@@ -1,10 +1,10 @@
 using Serilog;
 using Serilog.Events;
 
-namespace Api_Portar_Paciente.Handlers
+namespace Api___PROJECT_NAME__.Handlers
 {
     /// <summary>
-    /// Handler para configuración de Serilog
+    /// Handler para configuraciï¿½n de Serilog
     /// </summary>
     public static class LoggingHandler
     {
@@ -19,7 +19,7 @@ namespace Api_Portar_Paciente.Handlers
                 .WriteTo.Console()
                 .CreateBootstrapLogger();
 
-            Log.Information("Iniciando aplicación Portal Pacientes API");
+            Log.Information("Starting __PROJECT_NAME__ API");
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Api_Portar_Paciente.Handlers
                     .Enrich.FromLogContext()
                     .Enrich.WithMachineName()
                     .Enrich.WithEnvironmentName()
-                    .Enrich.WithProperty("Application", "PortalPacientesAPI");
+                    .Enrich.WithProperty("Application", "__PROJECT_NAME___API");
             });
         }
 

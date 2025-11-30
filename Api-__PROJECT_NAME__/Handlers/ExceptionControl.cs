@@ -1,4 +1,4 @@
-﻿namespace Api_Portar_Paciente.Handlers
+﻿namespace Api___PROJECT_NAME__.Handlers
 {
     public class ExceptionControl
     {

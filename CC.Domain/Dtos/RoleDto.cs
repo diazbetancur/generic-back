@@ -16,7 +16,7 @@ namespace CC.Domain.Dtos
         public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Descripción del rol
+        /// Descripciï¿½n del rol
         /// </summary>
         public string? Description { get; set; }
 
@@ -29,8 +29,6 @@ namespace CC.Domain.Dtos
         /// Lista de permisos completos (para lectura)
         /// </summary>
         public List<PermissionDto>? Permissions { get; set; }
-
-        public bool isSystem { get; set; }
     }
 
     /// <summary>
@@ -39,12 +37,12 @@ namespace CC.Domain.Dtos
     public class CreateRoleDto
     {
         /// <summary>
-        /// Nombre del rol
+        /// Nombre del rol (requerido)
         /// </summary>
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         /// <summary>
-        /// Descripción del rol
+        /// DescripciÃ³n del rol (opcional)
         /// </summary>
         public string? Description { get; set; }
     }
@@ -57,6 +55,6 @@ namespace CC.Domain.Dtos
         /// <summary>
         /// Lista de IDs de permisos a asignar
         /// </summary>
-        public List<Guid> PermissionIds { get; set; }
+        public required List<Guid> PermissionIds { get; set; }
     }
 }

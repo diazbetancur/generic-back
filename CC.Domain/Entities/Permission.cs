@@ -6,27 +6,27 @@ namespace CC.Domain.Entities
     public class Permission : EntityBase<Guid>
     {
         /// <summary>
-        /// Nombre único del permiso (ej: "Requests.Create", "Users.Delete")
+        /// Nombre ï¿½nico del permiso (ej: "Requests.Create", "Users.Delete")
         /// </summary>
         public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Módulo al que pertenece (ej: "Requests", "Users", "Reports")
+        /// Mï¿½dulo al que pertenece (ej: "Requests", "Users", "Reports")
         /// </summary>
         public string Module { get; set; } = string.Empty;
 
         /// <summary>
-        /// Descripción legible del permiso
+        /// Descripciï¿½n legible del permiso
         /// </summary>
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; } = string.Empty;
 
         /// <summary>
-        /// Indica si el permiso está activo
+        /// Indica si el permiso estï¿½ activo
         /// </summary>
         public bool IsActive { get; set; } = true;
 
         /// <summary>
-        /// Relación con roles que tienen este permiso
+        /// Relaciï¿½n con roles que tienen este permiso
         /// </summary>
         public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
     }

@@ -1,10 +1,10 @@
 using Serilog;
 using ILogger = Serilog.ILogger;
 
-namespace Api_Portar_Paciente.Services
+namespace Api___PROJECT_NAME__.Services
 {
     /// <summary>
-    /// Servicio en background que limpia logs antiguos automáticamente
+    /// Servicio en background que limpia logs antiguos automï¿½ticamente
     /// </summary>
     public class LogCleanupService : BackgroundService
     {
@@ -18,16 +18,16 @@ namespace Api_Portar_Paciente.Services
         {
             _configuration = configuration;
             _logger = Log.ForContext<LogCleanupService>();
-            
-            // Configuración desde appsettings
+
+            // Configuraciï¿½n desde appsettings
             _retentionDays = _configuration.GetValue<int>("Logging:RetentionDays", 30);
             _logPath = _configuration.GetValue<string>("Logging:LogPath", "logs") ?? "logs";
-            
-            // Ejecutar limpieza cada día a las 3 AM
+
+            // Ejecutar limpieza cada dï¿½a a las 3 AM
             var cleanupHour = _configuration.GetValue<int>("Logging:CleanupHour", 3);
             _interval = TimeSpan.FromHours(24);
-            
-            _logger.Information("LogCleanupService configurado: RetentionDays={RetentionDays}, LogPath={LogPath}, CleanupHour={CleanupHour}", 
+
+            _logger.Information("LogCleanupService configurado: RetentionDays={RetentionDays}, LogPath={LogPath}, CleanupHour={CleanupHour}",
                 _retentionDays, _logPath, cleanupHour);
         }
 
@@ -43,13 +43,13 @@ namespace Api_Portar_Paciente.Services
                 try
                 {
                     await CleanupOldLogsAsync(stoppingToken);
-                    
-                    // Esperar 24 horas hasta la próxima ejecución
+
+                    // Esperar 24 horas hasta la prï¿½xima ejecuciï¿½n
                     await Task.Delay(_interval, stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.Information("LogCleanupService detenido por cancelación");
+                    _logger.Information("LogCleanupService detenido por cancelaciï¿½n");
                     break;
                 }
                 catch (Exception ex)
@@ -74,7 +74,7 @@ namespace Api_Portar_Paciente.Services
             }
 
             var delay = nextCleanup - now;
-            _logger.Information("Próxima limpieza de logs programada para: {NextCleanup}", nextCleanup);
+            _logger.Information("Prï¿½xima limpieza de logs programada para: {NextCleanup}", nextCleanup);
 
             await Task.Delay(delay, stoppingToken);
         }
@@ -106,14 +106,14 @@ namespace Api_Portar_Paciente.Services
                         if (fileInfo.LastWriteTime < cutoffDate)
                         {
                             var fileSize = fileInfo.Length;
-                            
+
                             try
                             {
                                 File.Delete(logFile);
                                 deletedCount++;
                                 totalSize += fileSize;
-                                
-                                _logger.Debug("Log eliminado: {FileName}, Tamaño: {Size} bytes, Fecha: {LastWrite}", 
+
+                                _logger.Debug("Log eliminado: {FileName}, Tamaï¿½o: {Size} bytes, Fecha: {LastWrite}",
                                     fileInfo.Name, fileSize, fileInfo.LastWriteTime);
                             }
                             catch (Exception ex)
@@ -134,7 +134,7 @@ namespace Api_Portar_Paciente.Services
                         _logger.Information("Limpieza de logs: No hay archivos antiguos para eliminar");
                     }
 
-                    // Información adicional
+                    // Informaciï¿½n adicional
                     var remainingFiles = Directory.GetFiles(logDirectory, "log-*.txt").Length;
                     var directorySize = Directory.GetFiles(logDirectory, "log-*.txt")
                         .Sum(f => new FileInfo(f).Length);

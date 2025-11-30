@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36511.14 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CC.Aplication", "CC.Aplication\CC.Aplication.csproj", "{B9A14D57-3D47-4A3A-BCAB-7F211C8F2E9A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CC.Application", "CC.Application\CC.Application.csproj", "{B9A14D57-3D47-4A3A-BCAB-7F211C8F2E9A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CC.Domain", "CC.Domain\CC.Domain.csproj", "{2F9292D1-3931-4A6F-92C6-A9EAEBFA7DBE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CC.Infrastructure", "CC.Infrastructure\CC.Infrastructure.csproj", "{231CA27F-F22E-4002-8FB9-A44D37C8ED26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api-Portar-Paciente", "Api-Portar-Paciente\Api-Portar-Paciente.csproj", "{6130E6FC-629D-40D5-A406-29399DCEB328}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api-__PROJECT_NAME__", "Api-__PROJECT_NAME__\Api-__PROJECT_NAME__.csproj", "{6130E6FC-629D-40D5-A406-29399DCEB328}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
