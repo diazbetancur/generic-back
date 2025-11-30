@@ -91,7 +91,7 @@ find . -name "*.csproj" -type f | while read -r file; do
 done
 
 # Solution file
-replace_in_file "PortalPacientes.sln"
+replace_in_file "__PROJECT_NAME__.sln"
 
 # package.json and package-lock.json
 replace_in_file "package.json"
@@ -106,16 +106,16 @@ if [ -d "Api-__PROJECT_NAME__" ]; then
 fi
 
 # Update solution file to reflect directory rename
-if [ -f "PortalPacientes.sln" ]; then
+if [ -f "__PROJECT_NAME__.sln" ]; then
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' "s/Api-__PROJECT_NAME__/Api-${PROJECT_NAME}/g" "PortalPacientes.sln"
-        sed -i '' "s/PortalPacientes/${PROJECT_NAME}/g" "PortalPacientes.sln"
+        sed -i '' "s/Api-__PROJECT_NAME__/Api-${PROJECT_NAME}/g" "__PROJECT_NAME__.sln"
+        sed -i '' "s/__PROJECT_NAME__/${PROJECT_NAME}/g" "__PROJECT_NAME__.sln"
     else
-        sed -i "s/Api-__PROJECT_NAME__/Api-${PROJECT_NAME}/g" "PortalPacientes.sln"
-        sed -i "s/PortalPacientes/${PROJECT_NAME}/g" "PortalPacientes.sln"
+        sed -i "s/Api-__PROJECT_NAME__/Api-${PROJECT_NAME}/g" "__PROJECT_NAME__.sln"
+        sed -i "s/__PROJECT_NAME__/${PROJECT_NAME}/g" "__PROJECT_NAME__.sln"
     fi
-    mv "PortalPacientes.sln" "${PROJECT_NAME}.sln"
-    print_info "✓ Renamed: PortalPacientes.sln → ${PROJECT_NAME}.sln"
+    mv "__PROJECT_NAME__.sln" "${PROJECT_NAME}.sln"
+    print_info "✓ Renamed: __PROJECT_NAME__.sln → ${PROJECT_NAME}.sln"
 fi
 
 # Update namespace references in csproj files

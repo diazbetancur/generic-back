@@ -79,7 +79,7 @@ Get-ChildItem -Path . -Filter *.csproj -Recurse | ForEach-Object {
 }
 
 # Solution file
-Replace-InFile "PortalPacientes.sln"
+Replace-InFile "__PROJECT_NAME__.sln"
 
 # package.json files
 Replace-InFile "package.json"
@@ -94,13 +94,13 @@ if (Test-Path "Api-__PROJECT_NAME__") {
 }
 
 # Update solution file to reflect directory rename
-if (Test-Path "PortalPacientes.sln") {
-    $slnContent = Get-Content "PortalPacientes.sln" -Raw
+if (Test-Path "__PROJECT_NAME__.sln") {
+    $slnContent = Get-Content "__PROJECT_NAME__.sln" -Raw
     $slnContent = $slnContent -replace 'Api-__PROJECT_NAME__', "Api-$ProjectName"
-    $slnContent = $slnContent -replace 'PortalPacientes', $ProjectName
-    Set-Content -Path "PortalPacientes.sln" -Value $slnContent -NoNewline
-    Rename-Item -Path "PortalPacientes.sln" -NewName "$ProjectName.sln"
-    Write-Info "✓ Renamed: PortalPacientes.sln → $ProjectName.sln"
+    $slnContent = $slnContent -replace '__PROJECT_NAME__', $ProjectName
+    Set-Content -Path "__PROJECT_NAME__.sln" -Value $slnContent -NoNewline
+    Rename-Item -Path "__PROJECT_NAME__.sln" -NewName "$ProjectName.sln"
+    Write-Info "✓ Renamed: __PROJECT_NAME__.sln → $ProjectName.sln"
 }
 
 # Update namespace references in csproj files
