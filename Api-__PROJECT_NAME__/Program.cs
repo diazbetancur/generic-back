@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using CC.Infrastructure.Configurations;
+using CC.Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 // ===== CONFIGURAR SERILOG ANTES DE CONSTRUIR EL HOST =====
@@ -181,7 +182,12 @@ try
 
     Log.Information("Políticas de autorización configuradas correctamente");
 
-    // Custom DI registrations (DbContext, Repositories, Services, Logging, Auditing)
+    // ===== DATABASE PERSISTENCE CONFIGURATION =====
+    builder.Services.AddPersistence(builder.Configuration);
+    Log.Information("Database persistence configured with provider: {Provider}",
+        builder.Configuration["Database:Provider"] ?? "SqlServer");
+
+    // Custom DI registrations (Repositories, Services, Logging, Auditing)
     Api___PROJECT_NAME__.Handlers.DependencyInyectionHandler.DepencyInyectionConfig(
         builder.Services,
         builder.Configuration,

@@ -42,20 +42,17 @@ namespace CC.Infrastructure.Configurations
 
             // AuditLog Configuration
             builder.Entity<AuditLog>().HasKey(c => c.Id);
-            builder.Entity<AuditLog>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
-            builder.Entity<AuditLog>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            // Id and DateCreated will be generated in application code (not database-specific functions)
 
             // GeneralSettings Configuration
             builder.Entity<GeneralSettings>().HasKey(c => c.Id);
-            builder.Entity<GeneralSettings>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
-            builder.Entity<GeneralSettings>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            // Id and DateCreated will be generated in application code (not database-specific functions)
             builder.Entity<GeneralSettings>().HasIndex(g => g.Key).IsUnique();
             builder.Entity<GeneralSettings>().Property(g => g.Key).HasMaxLength(100).IsRequired();
 
             // Permission Configuration
             builder.Entity<Permission>().HasKey(c => c.Id);
-            builder.Entity<Permission>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
-            builder.Entity<Permission>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            // Id and DateCreated will be generated in application code (not database-specific functions)
             builder.Entity<Permission>().HasIndex(p => p.Name).IsUnique();
             builder.Entity<Permission>().HasIndex(p => p.Module);
             builder.Entity<Permission>().Property(p => p.Name).HasMaxLength(100).IsRequired();
@@ -64,8 +61,7 @@ namespace CC.Infrastructure.Configurations
 
             // RolePermission Configuration
             builder.Entity<RolePermission>().HasKey(c => c.Id);
-            builder.Entity<RolePermission>().Property(e => e.Id).HasDefaultValueSql("NEWID()");
-            builder.Entity<RolePermission>().Property(e => e.DateCreated).HasDefaultValueSql("GETUTCDATE()");
+            // Id and DateCreated will be generated in application code (not database-specific functions)
             builder.Entity<RolePermission>().HasIndex(rp => new { rp.RoleId, rp.PermissionId }).IsUnique();
 
             // RolePermission Relationships

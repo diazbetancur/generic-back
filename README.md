@@ -32,11 +32,12 @@ A production-ready .NET 8 Web API template following Clean Architecture principl
 - 📚 **XML Documentation** support for all endpoints
 
 ### Database & Persistence
-- 💾 **Entity Framework Core 8** with SQL Server
+- 💾 **Entity Framework Core 8** with multi-provider support (SQL Server, PostgreSQL)
 - 💾 **Automatic Migrations** on startup
 - 💾 **Database Seeding** for initial data
 - 💾 **Audit Trail** with automatic tracking of entity changes
 - 💾 **Soft Delete** pattern implementation
+- 💾 **Database-agnostic design** for easy provider switching
 
 ### Additional Features
 - ⚡ **CORS** configuration
@@ -50,7 +51,9 @@ A production-ready .NET 8 Web API template following Clean Architecture principl
 ## 📋 Prerequisites
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or higher
-- [SQL Server 2019+](https://www.microsoft.com/sql-server) or SQL Server Express
+- Database server (choose one):
+  - [SQL Server 2019+](https://www.microsoft.com/sql-server) or SQL Server Express (Default)
+  - [PostgreSQL 14+](https://www.postgresql.org/download/)
 - [Visual Studio 2022](https://visualstudio.microsoft.com/) / [VS Code](https://code.visualstudio.com/) / [Rider](https://www.jetbrains.com/rider/)
 - [Git](https://git-scm.com/)
 
@@ -85,12 +88,28 @@ This will replace all occurrences of `__PROJECT_NAME__` with your actual project
 
 ### 3️⃣ Configure Database
 
-Update the connection string in `Api-YourProjectName/appsettings.Development.json`:
+The template supports both SQL Server and PostgreSQL. Choose your preferred provider and update the configuration in `Api-YourProjectName/appsettings.Development.json`:
 
+**For SQL Server (Default):**
 ```json
 {
   "ConnectionStrings": {
     "DefaultConnection": "Server=localhost;Database=YourDatabase;User Id=youruser;Password=yourpassword;TrustServerCertificate=True;"
+  },
+  "Database": {
+    "Provider": "SqlServer"
+  }
+}
+```
+
+**For PostgreSQL:**
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=YourDatabase;Username=youruser;Password=yourpassword;Include Error Detail=true"
+  },
+  "Database": {
+    "Provider": "PostgreSQL"
   }
 }
 ```
@@ -154,6 +173,104 @@ curl -X POST https://localhost:7149/api/Auth/admin/login \
 curl -X GET https://localhost:7149/api/YourEndpoint \
   -H "Authorization: Bearer {your-jwt-token}"
 ```
+
+---
+
+## 💾 Database Configuration
+
+This template supports **multiple database providers** out of the box, allowing you to choose between SQL Server and PostgreSQL without code changes.
+
+### Supported Database Providers
+
+- **SQL Server** (Default)
+- **PostgreSQL**
+
+### Configuration
+
+Database configuration is managed through `appsettings.json` with two key settings:
+
+1. **Connection String**: Located in `ConnectionStrings:DefaultConnection`
+2. **Database Provider**: Located in `Database:Provider`
+
+#### Example Configuration (SQL Server - Default)
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=YourDatabase;User Id=youruser;Password=yourpassword;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+  },
+  "Database": {
+    "Provider": "SqlServer"
+  }
+}
+```
+
+#### Example Configuration (PostgreSQL)
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=YourDatabase;Username=youruser;Password=yourpassword;Include Error Detail=true"
+  },
+  "Database": {
+    "Provider": "PostgreSQL"
+  }
+}
+```
+
+### How It Works
+
+The database persistence is configured using an extension method `AddPersistence(services, configuration)` located in `CC.Infrastructure.Extensions.PersistenceExtensions`.
+
+This extension method:
+1. Reads the `Database:Provider` setting from configuration
+2. Reads the connection string from `ConnectionStrings:DefaultConnection`
+3. Configures Entity Framework Core with the appropriate database provider:
+   - For **SqlServer**: Uses `UseSqlServer()` with retry on failure (5 attempts, 10 seconds max delay)
+   - For **PostgreSQL**: Uses `UseNpgsql()` with retry on failure (5 attempts, 10 seconds max delay)
+4. Registers the `AuditingSaveChangesInterceptor` if auditing is enabled
+
+The configuration is called in `Program.cs`:
+```csharp
+builder.Services.AddPersistence(builder.Configuration);
+```
+
+### Environment-Specific Configuration
+
+You can configure different database providers per environment:
+
+- `appsettings.json` - Base configuration (SqlServer by default)
+- `appsettings.Development.json` - Development environment (can use local SQL Server or PostgreSQL)
+- `appsettings.Production.json` - Production environment
+- `appsettings.qa.json` - QA environment
+
+### Database-Agnostic Design
+
+The `DBContext` has been designed to be database-agnostic:
+- No SQL Server-specific functions (like `NEWID()`, `GETUTCDATE()`) in entity configurations
+- `Id` (Guid) and `DateCreated` (DateTime) are generated in application code via the `EntityBase<T>` constructor
+- Migrations can be generated for both SQL Server and PostgreSQL
+
+### Generating Migrations
+
+When generating migrations, ensure you have the correct database provider configured:
+
+```bash
+# For SQL Server (default)
+cd CC.Infrastructure
+dotnet ef migrations add YourMigrationName --startup-project ../Api-__PROJECT_NAME__
+
+# For PostgreSQL (change Provider in appsettings.json first)
+cd CC.Infrastructure
+dotnet ef migrations add YourMigrationName --startup-project ../Api-__PROJECT_NAME__
+```
+
+### Friday Tool Integration
+
+The "Friday" tool can generate projects with either database provider by:
+1. Setting the appropriate `Database:Provider` value in the generated `appsettings.json`
+2. Providing the correct connection string format for the chosen provider
+3. No code changes are required - the template automatically adapts to the configured provider
 
 ---
 

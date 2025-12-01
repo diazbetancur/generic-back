@@ -19,31 +19,6 @@ namespace Api___PROJECT_NAME__.Handlers
             {
                 Console.WriteLine($"Environment detected in DI: {environment}");
 
-                #region Database Configuration
-
-                bool auditingEnabled = configuration.GetValue<bool>("Auditing:Enabled");
-
-                services.AddScoped<AuditingSaveChangesInterceptor>();
-
-                services.AddDbContext<DBContext>((serviceProvider, opt) =>
-                {
-                    var conn = configuration.GetConnectionString("DefaultConnection");
-                    opt.UseSqlServer(conn, sql =>
-                    {
-                        sql.EnableRetryOnFailure(
-                            maxRetryCount: 5,
-                            maxRetryDelay: TimeSpan.FromSeconds(10),
-                            errorNumbersToAdd: null);
-                    });
-                    if (auditingEnabled)
-                    {
-                        var interceptor = serviceProvider.GetRequiredService<AuditingSaveChangesInterceptor>();
-                        opt.AddInterceptors(interceptor);
-                    }
-                });
-
-                #endregion Database Configuration
-
                 #region AutoMapper
 
                 services.AddAutoMapper(typeof(CC.Domain.AutoMapperProfile));
@@ -68,6 +43,10 @@ namespace Api___PROJECT_NAME__.Handlers
                         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
                         retainedFileCountLimit: 7)
                     .CreateLogger();
+
+                var auditingEnabledValue = configuration["Auditing:Enabled"];
+                var auditingEnabled = !string.IsNullOrEmpty(auditingEnabledValue) &&
+                                      bool.TryParse(auditingEnabledValue, out var enabled) && enabled;
 
                 logger.Information("DI configured for {Environment}. AuditingEnabled={AuditingEnabled}", environment, auditingEnabled);
                 services.AddSingleton<ILogger>(logger);
